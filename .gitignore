@@ -39,3 +39,7 @@ yarn-error.log*
 .tmp/
 tmp/
 *.tmp
+
+# Claude Code
+.claude/
+CLAUDE.md
