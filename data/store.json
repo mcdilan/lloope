@@ -1,0 +1,551 @@
+{
+  "settings": {
+    "storeName": "Lloope",
+    "tagline": "Diseños en madera",
+    "logo": "img/logo-mark.png",
+    "colorPrimary": "#B06B3E",
+    "colorSecondary": "#7E8B69",
+    "colorButton": "#2B211A",
+    "font": "Manrope",
+    "currency": "CLP",
+    "ivaIncluded": true,
+    "footerMessage": "Diseños y productos decorativos en madera, hechos con corte CNC y terminaciones artesanales. Piezas únicas para tu hogar, tus regalos y tu marca.",
+    "status": "active"
+  },
+  "home": {
+    "heroEyebrow": "Emprendimiento chileno · Madera + CNC",
+    "heroTitle": "La madera cobra vida propia en cada corte.",
+    "heroHighlight": "vida propia",
+    "heroSubtitle": "Diseños decorativos, tablas y regalos personalizados creados con precisión CNC y terminaciones hechas a mano. Piezas únicas, cálidas y con historia.",
+    "heroCtaText": "Explorar catálogo",
+    "heroCtaLink": "#catalogo",
+    "heroImage": "img/bandeja-cereza.jpeg",
+    "heroFloatImage": "img/letrero-boda.jpeg",
+    "heroBadge": "Madera noble seleccionada",
+    "showFeatured": true,
+    "showAbout": true,
+    "showGallery": true,
+    "showContact": true
+  },
+  "menu": [
+    {
+      "id": 1,
+      "label": "Catálogo",
+      "link": "#catalogo",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": 2,
+      "label": "Categorías",
+      "link": "#categorias",
+      "order": 2,
+      "active": true
+    },
+    {
+      "id": 3,
+      "label": "Proceso",
+      "link": "#proceso",
+      "order": 3,
+      "active": true
+    },
+    {
+      "id": 4,
+      "label": "Sobre Lloope",
+      "link": "#nosotros",
+      "order": 4,
+      "active": true
+    },
+    {
+      "id": 5,
+      "label": "A pedido",
+      "link": "#corporativo",
+      "order": 5,
+      "active": true
+    },
+    {
+      "id": 6,
+      "label": "Contacto",
+      "link": "#contacto",
+      "order": 6,
+      "active": true
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "Tabla de picoteo grabada",
+      "sku": "LLP-001",
+      "cat": "Tablas y bandejas",
+      "price": 24990,
+      "offerPrice": 0,
+      "stock": 12,
+      "active": true,
+      "featured": true,
+      "custom": false,
+      "quote": false,
+      "descShort": "Tabla de madera noble con manillas y canal jugo. Ideal para asados y picoteos.",
+      "descLong": "Tabla de madera noble con manillas laterales y canal para jugos. Perfecta para asados y tablas de picoteo; se personaliza con nombre o logo grabado.",
+      "measures": "45 × 25 cm",
+      "material": "Raulí / madera nativa",
+      "fabTime": "5 a 7 días",
+      "image": "img/tabla-asado.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 2,
+      "name": "Bandeja Dinosaurio",
+      "sku": "LLP-002",
+      "cat": "Tablas y bandejas",
+      "price": 16990,
+      "offerPrice": 0,
+      "stock": 8,
+      "active": true,
+      "featured": false,
+      "custom": false,
+      "quote": false,
+      "descShort": "Bandeja tallada en forma de triceratops. Divertida y decorativa para niños.",
+      "descLong": "Bandeja tallada en forma de triceratops. Un plato divertido y decorativo, ideal para niños y coleccionistas. Terminación con aceite seguro al contacto.",
+      "measures": "30 × 18 cm",
+      "material": "Madera de álamo",
+      "fabTime": "4 a 6 días",
+      "image": "img/bandeja-dinosaurio.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 3,
+      "name": "Bandeja Cerezas",
+      "sku": "LLP-003",
+      "cat": "Tablas y bandejas",
+      "price": 18990,
+      "offerPrice": 15990,
+      "stock": 10,
+      "active": true,
+      "featured": true,
+      "custom": false,
+      "quote": false,
+      "descShort": "Bandeja con doble cavidad en forma de cerezas. Perfecta para snacks o salsas.",
+      "descLong": "Bandeja con doble cavidad en forma de cerezas. Perfecta para snacks, salsas o como pieza decorativa sobre la mesa.",
+      "measures": "28 × 26 cm",
+      "material": "Madera nativa",
+      "fabTime": "5 a 7 días",
+      "image": "img/bandeja-cereza.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 4,
+      "name": "Tabla Guitarra",
+      "sku": "LLP-004",
+      "cat": "Tablas y bandejas",
+      "price": 27990,
+      "offerPrice": 0,
+      "stock": 5,
+      "active": true,
+      "featured": false,
+      "custom": false,
+      "quote": false,
+      "descShort": "Tabla de servir con silueta de guitarra y divisiones. Para amantes de la música.",
+      "descLong": "Tabla de servir con silueta de guitarra y divisiones internas. Para los amantes de la música y el buen picoteo.",
+      "measures": "50 × 22 cm",
+      "material": "Raulí",
+      "fabTime": "6 a 8 días",
+      "image": "img/tabla-guitarra.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 5,
+      "name": "Letrero Mi Bautizo",
+      "sku": "LLP-005",
+      "cat": "Regalos personalizados",
+      "price": 19990,
+      "offerPrice": 0,
+      "stock": 15,
+      "active": true,
+      "featured": true,
+      "custom": true,
+      "quote": false,
+      "descShort": "Letrero circular calado para bautizos. Se personaliza con nombre y fecha.",
+      "descLong": "Letrero circular calado para bautizos. Se personaliza con el nombre y la fecha del recuerdo. Liviano y perfecto como decoración o fondo de fotos.",
+      "measures": "40 cm diámetro",
+      "material": "MDF sellado",
+      "fabTime": "3 a 5 días",
+      "image": "img/letrero-bautizo.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 6,
+      "name": "Letrero Baby Shower",
+      "sku": "LLP-006",
+      "cat": "Regalos personalizados",
+      "price": 19990,
+      "offerPrice": 0,
+      "stock": 0,
+      "active": true,
+      "featured": false,
+      "custom": true,
+      "quote": false,
+      "descShort": "Aro decorativo Baby Shower en madera. Ideal como fondo de fotos.",
+      "descLong": "Aro decorativo Baby Shower en madera calada. Ideal como fondo de fotos y decoración de evento. Reutilizable.",
+      "measures": "40 cm diámetro",
+      "material": "MDF sellado",
+      "fabTime": "3 a 5 días",
+      "image": "img/letrero-baby-shower.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 7,
+      "name": "Letrero Nuestra Boda",
+      "sku": "LLP-007",
+      "cat": "Regalos personalizados",
+      "price": 22990,
+      "offerPrice": 0,
+      "stock": 9,
+      "active": true,
+      "featured": true,
+      "custom": true,
+      "quote": false,
+      "descShort": "Letrero circular para matrimonios y sesiones de fotos. Elegante y reutilizable.",
+      "descLong": "Letrero circular para matrimonios y sesiones de fotos. Elegante, liviano y reutilizable; se personaliza con nombres y fecha.",
+      "measures": "45 cm diámetro",
+      "material": "MDF sellado",
+      "fabTime": "4 a 6 días",
+      "image": "img/letrero-boda.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 8,
+      "name": "Figura personalizada con nombre",
+      "sku": "LLP-008",
+      "cat": "Regalos personalizados",
+      "price": 21990,
+      "offerPrice": 0,
+      "stock": 7,
+      "active": true,
+      "featured": false,
+      "custom": true,
+      "quote": false,
+      "descShort": "Figura decorativa de madera con nombre grabado. Un regalo emotivo.",
+      "descLong": "Figura decorativa de madera con nombre grabado. Un regalo emotivo para amantes de las mascotas y fechas especiales.",
+      "measures": "15 × 12 cm",
+      "material": "MDF / madera nativa",
+      "fabTime": "4 a 6 días",
+      "image": "img/figura-personalizada.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 9,
+      "name": "Set Bandejas Trébol",
+      "sku": "LLP-009",
+      "cat": "Decoración en madera",
+      "price": 29990,
+      "offerPrice": 0,
+      "stock": 6,
+      "active": true,
+      "featured": true,
+      "custom": false,
+      "quote": false,
+      "descShort": "Trío de bandejas con forma de trébol que encajan entre sí.",
+      "descLong": "Trío de bandejas con forma de trébol que encajan entre sí. Decorativas y funcionales, ideales para picoteos y regalos.",
+      "measures": "3 piezas · 20 cm c/u",
+      "material": "Madera nativa",
+      "fabTime": "6 a 8 días",
+      "image": "img/bandejas-flor.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 10,
+      "name": "Bandeja Conejo",
+      "sku": "LLP-010",
+      "cat": "Decoración en madera",
+      "price": 14990,
+      "offerPrice": 0,
+      "stock": 11,
+      "active": true,
+      "featured": false,
+      "custom": false,
+      "quote": false,
+      "descShort": "Bandeja ovalada con silueta de conejo tallada en madera clara.",
+      "descLong": "Bandeja ovalada con silueta de conejo tallada en madera clara. Suave, cálida y minimalista.",
+      "measures": "26 × 16 cm",
+      "material": "Madera de álamo",
+      "fabTime": "4 a 6 días",
+      "image": "img/bandeja-conejo.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 11,
+      "name": "Letrero de Parcela personalizado",
+      "sku": "LLP-011",
+      "cat": "Diseños a pedido",
+      "price": 34990,
+      "offerPrice": 0,
+      "stock": 4,
+      "active": true,
+      "featured": true,
+      "custom": true,
+      "quote": false,
+      "descShort": "Letrero rústico para parcelas y casas de campo, con nombre a elección.",
+      "descLong": "Letrero rústico para parcelas y casas de campo, con nombre y detalles a elección. Terminación resistente para exterior.",
+      "measures": "80 × 35 cm",
+      "material": "Madera tratada",
+      "fabTime": "7 a 10 días",
+      "image": "img/letrero-parcela.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 12,
+      "name": "Repisa infantil de libros",
+      "sku": "LLP-012",
+      "cat": "Decoración en madera",
+      "price": 49990,
+      "offerPrice": 0,
+      "stock": 3,
+      "active": true,
+      "featured": false,
+      "custom": false,
+      "quote": false,
+      "descShort": "Organizador de libros tipo Montessori en madera. Estable y seguro.",
+      "descLong": "Organizador de libros tipo Montessori en madera. Estable, seguro y de líneas suaves; pensado para la habitación de los niños.",
+      "measures": "60 × 65 cm",
+      "material": "Terciado / MDF",
+      "fabTime": "8 a 12 días",
+      "image": "img/repisa-infantil.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 13,
+      "name": "Panel decorativo calado",
+      "sku": "LLP-013",
+      "cat": "Decoración en madera",
+      "price": 59990,
+      "offerPrice": 0,
+      "stock": 0,
+      "active": true,
+      "featured": false,
+      "custom": true,
+      "quote": false,
+      "descShort": "Panel o biombo calado con diseño tropical. Perfecto para eventos.",
+      "descLong": "Panel o biombo calado con diseño tropical. Perfecto para eventos, fondos y decoración de interiores. Diseño personalizable.",
+      "measures": "120 × 200 cm",
+      "material": "MDF pintado",
+      "fabTime": "10 a 15 días",
+      "image": "img/panel-tropical.jpeg",
+      "gallery": []
+    },
+    {
+      "id": 14,
+      "name": "Diseño corporativo en madera",
+      "sku": "LLP-014",
+      "cat": "Diseños a pedido",
+      "price": 0,
+      "offerPrice": 0,
+      "stock": 99,
+      "active": true,
+      "featured": false,
+      "custom": true,
+      "quote": true,
+      "descShort": "Tablas, bandejas y objetos con la identidad de tu marca. A cotizar.",
+      "descLong": "Tablas, bandejas y objetos con la identidad de tu marca. Cotización según proyecto, diseño y cantidad. Ideal para regalos institucionales y activaciones.",
+      "measures": "A medida",
+      "material": "A elección",
+      "fabTime": "Según proyecto",
+      "image": "img/corporativo-vina.jpeg",
+      "gallery": []
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "name": "Tablas y bandejas",
+      "image": "img/tabla-asado.jpeg",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Decoración en madera",
+      "image": "img/panel-tropical.jpeg",
+      "order": 2,
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "Regalos personalizados",
+      "image": "img/figura-personalizada.jpeg",
+      "order": 3,
+      "active": true
+    },
+    {
+      "id": 4,
+      "name": "Diseños a pedido",
+      "image": "img/corporativo-vina.jpeg",
+      "order": 4,
+      "active": true
+    }
+  ],
+  "images": {
+    "logo": "img/logo-mark.png",
+    "logoFull": "img/logo.png",
+    "hero": "img/bandeja-cereza.jpeg",
+    "gallery": [
+      {
+        "id": 1,
+        "src": "img/letrero-bautizo.jpeg",
+        "alt": "Letrero Mi Bautizo en madera"
+      },
+      {
+        "id": 2,
+        "src": "img/bandejas-flor.jpeg",
+        "alt": "Set de bandejas con forma de flor"
+      },
+      {
+        "id": 3,
+        "src": "img/corporativo-prize.jpeg",
+        "alt": "Bandeja corporativa de cerezas Prizé"
+      },
+      {
+        "id": 4,
+        "src": "img/letrero-parcela.jpeg",
+        "alt": "Letrero rústico para parcela"
+      },
+      {
+        "id": 5,
+        "src": "img/bandeja-conejo.jpeg",
+        "alt": "Bandeja de madera con forma de conejo"
+      },
+      {
+        "id": 6,
+        "src": "img/letrero-baby-shower.jpeg",
+        "alt": "Letrero Baby Shower en madera"
+      },
+      {
+        "id": 7,
+        "src": "img/repisa-infantil.jpeg",
+        "alt": "Repisa infantil de libros en madera"
+      },
+      {
+        "id": 8,
+        "src": "img/figura-mujer-gato.jpeg",
+        "alt": "Figura decorativa mujer y mascota"
+      }
+    ]
+  },
+  "contact": {
+    "businessName": "Lloope",
+    "phone": "+56 9 7567 4135",
+    "whatsapp": "56975674135",
+    "email": "hola@lloope.cl",
+    "instagram": "lloope.cl",
+    "tiktok": "",
+    "facebook": "",
+    "city": "Rengo, Región de O'Higgins",
+    "address": "",
+    "hours": "Lun a Sáb · 10:00 a 19:00 h",
+    "waMessage": "¡Hola Lloope! 🌿 Quiero hacer este pedido:",
+    "contactText": "¿Tienes una idea o quieres personalizar un producto? Escríbenos y la hacemos realidad."
+  },
+  "cart": {
+    "enabled": true,
+    "currency": "CLP",
+    "minPurchase": 0,
+    "shippingCost": 0,
+    "pickup": true,
+    "homeDelivery": true,
+    "shippingByPayer": true,
+    "finishMessage": "¡Gracias por tu pedido! Te contactaremos por WhatsApp para coordinar personalización y despacho.",
+    "whatsappCheckout": true,
+    "onlinePay": false,
+    "allowInvoice": false,
+    "btnAddToCart": "Agregar al carrito",
+    "btnViewCart": "Ver carrito",
+    "btnCheckout": "Finalizar compra",
+    "btnWhatsapp": "Comprar por WhatsApp"
+  },
+  "payment": {
+    "methods": {
+      "transfer": true,
+      "whatsapp": true,
+      "webpay": false,
+      "mercadopago": false,
+      "flow": false,
+      "other": false
+    },
+    "transfer": {
+      "bank": "Banco Estado",
+      "accountType": "Cuenta Vista",
+      "accountNumber": "00012345678",
+      "holder": "Lloope SpA",
+      "rut": "77.123.456-7",
+      "email": "pagos@lloope.cl"
+    },
+    "online": {
+      "provider": "Webpay",
+      "mode": "test",
+      "publicKey": "",
+      "secretKey": "",
+      "commerceCode": "",
+      "returnUrl": "",
+      "confirmUrl": "",
+      "active": false
+    }
+  },
+  "legal": {
+    "terms": "Los productos de Lloope son elaborados de forma artesanal, por lo que pueden existir pequeñas variaciones en color y veta de la madera. Al realizar un pedido aceptas nuestros tiempos de fabricación y condiciones de personalización.",
+    "privacy": "Tus datos se utilizan únicamente para gestionar tu pedido y contacto. No compartimos tu información con terceros.",
+    "returns": "Los productos personalizados no tienen cambio ni devolución, salvo defecto de fabricación. Para productos de catálogo, tienes 7 días desde la recepción para solicitar cambio.",
+    "shipping": "Realizamos envíos a todo Chile mediante courier. El costo y plazo se coordinan por WhatsApp según ciudad y tamaño de la pieza. También ofrecemos retiro en taller.",
+    "iva": "Todos los precios incluyen IVA.",
+    "secure": "Compra segura: no almacenamos datos de tarjetas. Los pagos con tarjeta se procesan mediante proveedores externos certificados.",
+    "dataRights": "Dónde viven tus datos: el carrito, tu perfil de invitado (nombre, correo, teléfono) y el correo que dejas en el pop-up de descuento se guardan únicamente en el navegador de tu propio dispositivo. No están en un servidor central.\n\nPerfil de invitado: puedes ver, editar o eliminar estos datos tú mismo en cualquier momento desde el ícono \"Mi cuenta\" → \"Olvidar mis datos\".\n\nCorreo del pop-up de descuento y pedidos confirmados por WhatsApp: quedan como registro en el dispositivo donde se administra la tienda. Para solicitar acceso, corrección o eliminación de estos datos, contáctanos directamente y responderemos en un plazo máximo de 30 días.\n\nDatos de pago: este sitio no pide ni almacena números de tarjeta, CVV ni fecha de vencimiento en ningún caso."
+  },
+  "coupons": [
+    {
+      "id": 1,
+      "code": "BIENVENIDO10",
+      "type": "percent",
+      "value": 10,
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "active": true,
+      "singleUse": false
+    },
+    {
+      "id": 2,
+      "code": "ENVIOGRATIS",
+      "type": "fixed",
+      "value": 5000,
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "active": false,
+      "singleUse": false
+    }
+  ],
+  "banners": [
+    {
+      "id": 1,
+      "title": "Cyber Days Lloope",
+      "text": "20% de descuento en piezas seleccionadas con el código BIENVENIDO10.",
+      "image": "",
+      "bgColor": "#8A4E2C",
+      "buttonText": "Ver catálogo",
+      "buttonLink": "#catalogo",
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "active": false
+    }
+  ],
+  "welcomePopup": {
+    "enabled": false,
+    "title": "¡Espera! Un regalo para ti",
+    "text": "Déjanos tu correo y obtén un descuento especial para tu primera compra en Lloope.",
+    "badgeText": "10% OFF",
+    "image": "",
+    "couponCode": "BIENVENIDO10",
+    "buttonText": "Quiero mi descuento"
+  },
+  "supabase": {
+    "url": "https://anlnvehpdixaibqzwkxy.supabase.co",
+    "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFubG52ZWhwZGl4YWlicXp3a3h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNTU4MzcsImV4cCI6MjA5ODgzMTgzN30.opkZR53mpikKbnlWLE6s5TF3EJbGM-XJqxWIuEnxvAY"
+  },
+  "_publishedAt": "2026-07-05T17:14:52.539Z"
+}

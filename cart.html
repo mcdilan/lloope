@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tu carrito · Lloope</title>
+<meta name="robots" content="noindex, follow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Jost:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="img/logo-mark.png" />
+<script src="lloope-data.js?v=3"></script>
+<script src="js/supabase.js?v=2.110.0"></script>
+<style>
+  :root{
+    --cream:#FBF6EE; --cream-2:#F4EADB; --sand:#EADBC6; --paper:#FFFDF9;
+    --espresso:#2B211A; --coffee:#5A4636; --wood:#B06B3E; --wood-dark:#8A4E2C;
+    --copper:#C0824B; --gold:#CAA25A; --sage:#7E8B69;
+    --line:rgba(43,33,26,.12);
+    --shadow-sm:0 6px 18px rgba(70,46,26,.08);
+    --shadow:0 22px 48px -18px rgba(70,46,26,.28);
+    --r-lg:26px; --r-md:18px; --r-sm:12px;
+    --serif:"Fraunces",Georgia,serif; --sans:"Manrope",system-ui,sans-serif; --brand:"Jost",system-ui,sans-serif;
+    --maxw:1100px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--espresso);background:var(--cream);line-height:1.6;-webkit-font-smoothing:antialiased}
+  img{display:block;max-width:100%}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.1}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  .btn{display:inline-flex;align-items:center;gap:.55em;justify-content:center;padding:.9em 1.6em;border-radius:100px;font-weight:700;font-size:.95rem;transition:transform .2s,box-shadow .2s,opacity .2s;white-space:nowrap}
+  .btn svg{width:18px;height:18px}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-wood{background:linear-gradient(135deg,var(--wood),var(--wood-dark));color:#fff;box-shadow:0 14px 26px -12px rgba(138,78,44,.7)}
+  .btn-wa{background:#25D366;color:#0b3d1f}
+  .btn-ghost{background:var(--paper);color:var(--espresso);border:1.5px solid var(--line)}
+  .btn-block{width:100%}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+  header{background:rgba(251,246,238,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:16px 0}
+  .brand{display:flex;align-items:center;gap:.7rem;font-family:var(--brand);font-weight:500;font-size:1.25rem;letter-spacing:.14em;text-transform:uppercase}
+  .brand .mark{width:42px;height:42px;border-radius:13px;background:#fff;box-shadow:var(--shadow-sm);display:grid;place-items:center}
+  .brand .mark img{width:78%;height:78%;object-fit:contain}
+  .back-link{font-weight:700;font-size:.9rem;color:var(--coffee);display:flex;align-items:center;gap:.4em}
+  .back-link:hover{color:var(--espresso)}
+  .icon-btn{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--paper);box-shadow:var(--shadow-sm)}
+  .icon-btn:hover{background:#fff}
+
+  main{padding:44px 0 90px}
+  .page-title{margin-bottom:32px}
+  .page-title span{font-size:.72rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--copper)}
+  .page-title h1{font-size:clamp(1.9rem,3.6vw,2.6rem);margin-top:.4rem}
+
+  .cart-layout{display:grid;grid-template-columns:1.4fr 1fr;gap:36px;align-items:start}
+  .cart-summary-col{position:sticky;top:96px;max-height:calc(100vh - 116px);overflow-y:auto;padding-right:4px}
+
+  .panel{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);border:1px solid rgba(43,33,26,.06);padding:26px}
+  .panel + .panel{margin-top:20px}
+  .panel h2{font-size:1.2rem;margin-bottom:1rem}
+
+  .row-item{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);align-items:center}
+  .row-item:last-child{border-bottom:none}
+  .row-item .ri-img{width:74px;height:82px;border-radius:12px;overflow:hidden;flex:none;background:var(--sand)}
+  .row-item .ri-img img{width:100%;height:100%;object-fit:cover}
+  .row-item .ri-info{flex:1;min-width:0}
+  .row-item .ri-cat{font-size:.7rem;color:var(--copper);font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .row-item h4{font-size:1rem;margin:.15rem 0}
+  .row-item .ri-price{font-family:var(--serif);font-weight:600}
+  .ri-controls{display:flex;align-items:center;gap:14px;flex:none}
+  .qty{display:flex;align-items:center;gap:2px;background:var(--cream);border-radius:100px;padding:3px}
+  .qty button{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:var(--coffee)}
+  .qty button:hover{background:#fff}
+  .qty span{min-width:26px;text-align:center;font-weight:700;font-size:.9rem}
+  .ri-remove{color:var(--coffee);opacity:.6;transition:opacity .2s,color .2s}
+  .ri-remove:hover{opacity:1;color:#c14a4a}
+  .ri-remove svg{width:18px;height:18px}
+
+  .empty-cart{text-align:center;padding:70px 20px}
+  .empty-cart svg{width:70px;height:70px;color:var(--sand);margin:0 auto 1.2rem}
+  .empty-cart h2{font-size:1.5rem;margin-bottom:.5rem}
+  .empty-cart p{color:var(--coffee);margin-bottom:1.6rem}
+
+  .coupon-row{display:flex;gap:.5rem;margin-bottom:.6rem}
+  .coupon-row input{flex:1;padding:.75em .9em;border-radius:100px;border:1.5px solid var(--line);background:var(--cream);font-family:inherit;font-size:.88rem;text-transform:uppercase}
+  .coupon-row input:focus{outline:none;border-color:var(--wood)}
+  .coupon-row button{padding:.75em 1.2em;border-radius:100px;background:var(--espresso);color:#fff;font-weight:700;font-size:.84rem;flex:none}
+  .coupon-msg{font-size:.8rem;font-weight:600;margin-bottom:1rem}
+  .coupon-msg.ok{color:var(--sage)} .coupon-msg.err{color:#c14a4a}
+
+  .sumline{display:flex;justify-content:space-between;font-size:.92rem;color:var(--coffee);margin-bottom:.55rem}
+  .sumline.discount{color:var(--sage)}
+  .sumline.total{color:var(--espresso);font-weight:800;font-size:1.2rem;font-family:var(--serif);padding-top:.8rem;border-top:1px solid var(--line);margin-top:.6rem}
+  .cart-trust{display:flex;flex-direction:column;gap:.45rem;margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--line)}
+  .cart-trust div{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--coffee);font-weight:500}
+  .cart-trust svg{color:var(--wood);flex:none}
+
+  .doc-choice{display:flex;gap:.6rem;margin-bottom:1rem}
+  .doc-choice label{flex:1;text-align:center;padding:.7em;border-radius:12px;border:1.5px solid var(--line);font-weight:700;font-size:.88rem;cursor:pointer;transition:border .2s,background .2s}
+  .doc-choice input{display:none}
+  .doc-choice input:checked + span{color:var(--wood-dark)}
+  .doc-choice label:has(input:checked){border-color:var(--wood);background:var(--cream-2)}
+
+  .field{margin-bottom:.9rem}
+  .field label{font-size:.8rem;font-weight:700;display:block;margin-bottom:.35rem}
+  .field input,.field textarea{width:100%;padding:.75em .9em;border-radius:10px;border:1.5px solid var(--line);background:var(--cream);font-family:inherit;font-size:.9rem}
+  .field textarea{resize:vertical;min-height:72px}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--wood)}
+
+  /* ============ CUSTOM SELECT ============ */
+  .custom-select{position:relative;display:block}
+  .custom-select select{display:none}
+  .select-trigger{width:100%;padding:.75em .9em;border-radius:10px;border:1.5px solid var(--line);background:var(--cream);font-family:inherit;font-size:.9rem;color:var(--espresso);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border .2s,background .2s;user-select:none}
+  .select-trigger:hover{border-color:var(--wood)}
+  .select-trigger.open{border-color:var(--wood);background:#fff;border-radius:10px 10px 0 0}
+  .select-trigger.disabled{opacity:.5;cursor:not-allowed;background:var(--cream)}
+  .select-trigger::after{content:'▼';font-size:.7rem;color:var(--coffee);flex:none;margin-left:.6em;transition:transform .2s}
+  .select-trigger.open::after{transform:scaleY(-1)}
+  .select-options{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--wood);border-top:none;border-radius:0 0 10px 10px;max-height:240px;overflow-y:auto;z-index:100;box-shadow:0 8px 16px -4px rgba(0,0,0,.1);display:none}
+  .select-options.show{display:block}
+  .select-option{padding:.75em .9em;cursor:pointer;color:var(--espresso);font-size:.9rem;transition:background .15s;display:flex;align-items:center;gap:.6em}
+  .select-option:hover{background:var(--cream-2)}
+  .select-option.selected{background:rgba(176,107,62,.12);color:var(--wood);font-weight:600}
+  .select-option.selected::before{content:'✓';font-weight:700}
+  .select-option.disabled{opacity:.5;cursor:not-allowed;background:transparent}
+
+  .field-check{display:flex;align-items:center;gap:.5rem;font-size:.84rem;color:var(--coffee);margin-bottom:1rem}
+  .field-check a{text-decoration:underline}
+  .field-check.consent{align-items:flex-start}
+  .field-check.consent input{margin-top:.2em;flex:none}
+
+  .acc-tabs{display:flex;gap:.4rem;margin-bottom:1.2rem;background:var(--cream-2);border-radius:100px;padding:4px}
+  .acc-tab{flex:1;padding:.6em 1em;border-radius:100px;font-weight:700;font-size:.86rem;color:var(--coffee);transition:background .2s,color .2s}
+  .acc-tab.active{background:var(--espresso);color:#fff}
+  .acc-error{background:#fbeaea;color:#c14a4a;border-radius:10px;padding:.6em .9em;font-size:.84rem;font-weight:600;margin-bottom:1rem}
+  .acc-panel{display:grid;gap:.9rem}
+  .acc-note{font-size:.84rem;color:var(--coffee);background:var(--cream-2);border-radius:10px;padding:.7em .9em;margin-bottom:1.2rem}
+  .acc-summary{background:var(--cream-2);border-radius:12px;padding:14px 16px;margin-bottom:1rem}
+  .acc-summary b{display:block} .acc-summary span{font-size:.85rem;color:var(--coffee)}
+  .acc-actions{display:flex;gap:.6rem}
+  .acc-orders{margin-top:1.6rem;border-top:1px solid var(--line);padding-top:1.2rem}
+  .acc-orders h3{font-size:1.05rem;margin-bottom:.8rem}
+  .acc-order{background:var(--cream-2);border-radius:12px;padding:12px 14px;margin-bottom:.7rem;font-size:.86rem}
+  .acc-order-head{display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin-bottom:.3rem;font-weight:700}
+  .acc-order-items{color:var(--coffee);margin-bottom:.3rem}
+  .acc-order-total{font-family:var(--serif);font-weight:600}
+  .badge2{display:inline-flex;align-items:center;gap:.35em;font-size:.68rem;font-weight:800;padding:.3em .7em;border-radius:100px;white-space:nowrap}
+  .b-on{background:#e4f2ea;color:#2f9e6f} .b-off{background:#f0e9e3;color:var(--coffee)}
+  .b-warn{background:#f9efdc;color:#c98a2b} .b-info{background:#e6eef7;color:#3b6ea5}
+  .b-danger{background:#fbe9e9;color:#c14a4a}
+
+  .invoice-note{font-size:.78rem;color:var(--coffee);background:var(--cream-2);border-radius:10px;padding:.7em .9em;margin-bottom:1rem}
+  .min-warn{font-size:.82rem;color:#c14a4a;font-weight:600;margin-bottom:.8rem}
+
+  .thankyou{text-align:center;padding:80px 20px}
+  .thankyou svg{width:76px;height:76px;color:var(--sage);margin:0 auto 1.2rem}
+  .thankyou h2{font-size:1.8rem;margin-bottom:.6rem}
+  .thankyou p{color:var(--coffee);max-width:44ch;margin:0 auto 1.6rem}
+
+  /* ============ TOAST ============ */
+  .toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,140%);z-index:200;background:var(--espresso);color:#fff;padding:.9em 1.4em;border-radius:100px;font-weight:600;font-size:.9rem;box-shadow:0 20px 40px -16px rgba(0,0,0,.4);display:flex;align-items:center;gap:.6em;transition:transform .4s cubic-bezier(.3,.8,.3,1)}
+  .toast.show{transform:translate(-50%,0)}
+  .toast svg{width:19px;height:19px;color:var(--sage);flex:none}
+  .toast.err svg{color:#e08a8a}
+
+  /* ============ CONFIRM MODAL ============ */
+  .confirm-ov{position:fixed;inset:0;background:rgba(30,20,14,.55);backdrop-filter:blur(3px);z-index:210;display:none;align-items:center;justify-content:center;padding:20px}
+  .confirm-ov.show{display:flex}
+  .confirm-box{background:var(--paper);border-radius:var(--r-lg);max-width:380px;width:100%;box-shadow:var(--shadow);padding:30px;text-align:center}
+  .confirm-box svg{width:44px;height:44px;color:var(--wood);margin:0 auto 1rem}
+  .confirm-box p{font-size:.98rem;margin-bottom:1.5rem}
+  .confirm-box .confirm-actions{display:flex;gap:.7rem}
+  .confirm-box .confirm-actions button{flex:1}
+
+  /* ============ ADDRESS MODAL ============ */
+  .addr-modal-ov{position:fixed;inset:0;background:rgba(30,20,14,.55);backdrop-filter:blur(3px);z-index:220;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+  .addr-modal-ov.show{display:flex}
+  .addr-modal-box{background:var(--paper);border-radius:var(--r-lg);max-width:500px;width:100%;box-shadow:var(--shadow-lg);padding:28px;margin:auto}
+  .addr-modal-box h3{font-size:1.2rem;margin-bottom:1rem;font-family:var(--serif);font-weight:600}
+  .addr-modal-box .form-actions{display:flex;gap:.7rem;margin-top:1.5rem;justify-content:flex-end}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:640px){ .grid-2{grid-template-columns:1fr} }
+
+  /* ============ ADDRESS CARDS ============ */
+  .addr-cards{display:grid;gap:10px;margin-top:.6rem}
+  .addr-card{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;transition:border .2s,background .2s}
+  .addr-card:hover{border-color:var(--wood)}
+  .addr-card input{margin-top:3px;accent-color:var(--wood);flex:none}
+  .addr-card:has(input:checked){border-color:var(--wood);background:var(--cream-2)}
+  .addr-card b{display:block;font-size:.92rem}
+  .addr-card span{font-size:.82rem;color:var(--coffee)}
+  .addr-default-tag{display:inline-block;margin-top:.35rem;font-size:.7rem;font-weight:800;color:var(--sage);text-transform:uppercase;letter-spacing:.04em}
+  .addr-empty{padding:16px;border:1.5px dashed var(--line);border-radius:12px;text-align:center;font-size:.88rem;color:var(--coffee)}
+
+  /* ============ CHECKOUT STEPS ============ */
+  .checkout-steps{margin-bottom:2.4rem}
+  .cs-track{display:flex;align-items:flex-start;max-width:360px;margin:0 auto;position:relative}
+  .cs-track::before{content:'';position:absolute;top:14px;left:calc(12.5% + 15px);right:calc(12.5% + 15px);height:2px;background:var(--line)}
+  .cs-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+  .cs-dot{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--line);background:var(--paper);display:grid;place-items:center;font-size:.75rem;font-weight:800;color:var(--coffee);position:relative;z-index:1}
+  .cs-label{font-size:.69rem;font-weight:700;color:var(--coffee);text-align:center}
+  .cs-step.active .cs-dot{border-color:var(--wood);color:var(--wood);background:#fff;box-shadow:0 0 0 4px rgba(176,107,62,.14)}
+  .cs-step.done .cs-dot{border-color:var(--wood);background:var(--wood);color:#fff}
+  .cs-step.active .cs-label,.cs-step.done .cs-label{color:var(--espresso)}
+
+  @media(max-width:860px){ .cart-layout{grid-template-columns:1fr} .cart-summary-col{position:static;max-height:none;overflow:visible;order:-1} .row-item{flex-wrap:wrap} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="index.html" class="brand">
+      <span class="mark"><img class="brand-logo" src="img/logo-mark.png" alt="Lloope"/></span>
+      <span class="brand-name">Lloope</span>
+    </a>
+    <a href="index.html#catalogo" class="back-link">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+      Seguir comprando
+    </a>
+    <button class="icon-btn" id="accountBtn" aria-label="Mi cuenta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="page-title">
+      <span>Tu pedido</span>
+      <h1>Carrito de compra</h1>
+    </div>
+    <div id="checkoutSteps" class="checkout-steps" style="display:none">
+      <div class="cs-track">
+        <div class="cs-step" id="csStep0"><div class="cs-dot">1</div><span class="cs-label">Carrito</span></div>
+        <div class="cs-step" id="csStep1"><div class="cs-dot">2</div><span class="cs-label">Envío</span></div>
+        <div class="cs-step" id="csStep2"><div class="cs-dot">3</div><span class="cs-label">Datos</span></div>
+        <div class="cs-step" id="csStep3"><div class="cs-dot">4</div><span class="cs-label">Finalizar</span></div>
+      </div>
+    </div>
+    <div id="cartRoot"></div>
+  </div>
+</main>
+
+<!-- MODAL CUENTA -->
+<div class="pm-overlay" id="accountOverlay" style="position:fixed;inset:0;background:rgba(30,20,14,.55);backdrop-filter:blur(3px);z-index:110;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto">
+  <div style="background:var(--paper);border-radius:var(--r-lg);max-width:440px;width:100%;box-shadow:var(--shadow);position:relative;margin:auto;padding:32px">
+    <button id="accountClose" aria-label="Cerrar" style="position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:10px;background:var(--cream);display:grid;place-items:center">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <h2 id="accountTitle" style="font-size:1.3rem;margin-bottom:.6rem">Mi cuenta</h2>
+    <div id="accountFormWrap"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+  <span id="toastMsg">Guardado</span>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-ov" id="confirmOv">
+  <div class="confirm-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+    <p id="confirmMsg">¿Confirmas esta acción?</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmCancel">Cancelar</button>
+      <button class="btn btn-wood" id="confirmOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADDRESS MODAL (agregar dirección en carrito) -->
+<div class="addr-modal-ov" id="addrModalOv">
+  <div class="addr-modal-box">
+    <h3>Agregar nueva dirección</h3>
+    <form id="addrModalForm" style="display:grid;gap:.9rem">
+      <div class="field">
+        <label>Calle *</label>
+        <input type="text" id="amod_street" required placeholder="Av. Providencia" />
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Número *</label>
+          <input type="text" id="amod_number" required placeholder="1234" />
+        </div>
+        <div class="field">
+          <label>Piso/Depto</label>
+          <input type="text" id="amod_apartment" placeholder="Depto 56" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Región *</label>
+          <select id="amod_region" required>
+            <option value="">Selecciona una región</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Ciudad / Comuna *</label>
+          <select id="amod_city" required disabled>
+            <option value="">Primero elige región</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Código postal</label>
+        <input type="text" id="amod_zip" placeholder="7500000" />
+      </div>
+      <label class="field-check">
+        <input type="checkbox" id="amod_default" />
+        <span>Dirección por defecto</span>
+      </label>
+    </form>
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeAddrModal()">Cancelar</button>
+      <button type="button" class="btn btn-wood" id="amod_save">Guardar dirección</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $  = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CLP = n => Lloope.money(n);
+
+/* ============ TOAST / CONFIRM (reemplazan alert()/confirm() nativos) ============ */
+let toastT;
+function toast(msg, isErr){
+  const t=$('#toast');
+  $('#toastMsg').textContent=msg;
+  t.classList.toggle('err', !!isErr);
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function showConfirm(message, onConfirm){
+  $('#confirmMsg').textContent=message;
+  $('#confirmOv').classList.add('show');
+  const ok=$('#confirmOk'), cancel=$('#confirmCancel');
+  const cleanup=()=>{ $('#confirmOv').classList.remove('show'); ok.onclick=null; cancel.onclick=null; };
+  ok.onclick=()=>{ cleanup(); onConfirm(); };
+  cancel.onclick=cleanup;
+}
+
+/* ============ MODAL AGREGAR DIRECCIÓN (en carrito, sin salir) ============ */
+const REGIONES_CHILE = {
+  "Arica y Parinacota": ["Arica","Camarones","Putre","General Lagos"],
+  "Tarapacá": ["Iquique","Alto Hospicio","Pozo Almonte","Camiña","Colchane","Huara","Pica"],
+  "Antofagasta": ["Antofagasta","Mejillones","Sierra Gorda","Taltal","Calama","Ollagüe","San Pedro de Atacama","Tocopilla","María Elena"],
+  "Atacama": ["Copiapó","Caldera","Tierra Amarilla","Chañaral","Diego de Almagro","Vallenar","Alto del Carmen","Freirina","Huasco"],
+  "Coquimbo": ["La Serena","Coquimbo","Andacollo","La Higuera","Paiguano","Vicuña","Illapel","Canela","Los Vilos","Salamanca","Ovalle","Combarbalá","Monte Patria","Punitaqui","Río Hurtado"],
+  "Valparaíso": ["Valparaíso","Casablanca","Concón","Juan Fernández","Puchuncaví","Quintero","Viña del Mar","Isla de Pascua","Los Andes","Calle Larga","Rinconada","San Esteban","La Ligua","Cabildo","Papudo","Petorca","Zapallar","Quillota","Calera","Hijuelas","La Cruz","Nogales","San Antonio","Algarrobo","Cartagena","El Quisco","El Tabo","Santo Domingo","San Felipe","Catemu","Llaillay","Panquehue","Putaendo","Santa María","Quilpué","Limache","Olmué","Villa Alemana"],
+  "Metropolitana de Santiago": ["Santiago","Cerrillos","Cerro Navia","Conchalí","El Bosque","Estación Central","Huechuraba","Independencia","La Cisterna","La Florida","La Granja","La Pintana","La Reina","Las Condes","Lo Barnechea","Lo Espejo","Lo Prado","Macul","Maipú","Ñuñoa","Pedro Aguirre Cerda","Peñalolén","Providencia","Pudahuel","Quilicura","Quinta Normal","Recoleta","Renca","San Joaquín","San Miguel","San Ramón","Vitacura","Puente Alto","Pirque","San José de Maipo","Colina","Lampa","Til Til","San Bernardo","Buin","Calera de Tango","Paine","Melipilla","Alhué","Curacaví","María Pinto","San Pedro","Talagante","El Monte","Isla de Maipo","Padre Hurtado","Peñaflor"],
+  "Libertador General Bernardo O'Higgins": ["Rancagua","Codegua","Coinco","Coltauco","Doñihue","Graneros","Las Cabras","Machalí","Malloa","Mostazal","Olivar","Peumo","Pichidegua","Quinta de Tilcoco","Rengo","Requínoa","San Vicente","Pichilemu","La Estrella","Litueche","Marchihue","Navidad","Paredones","San Fernando","Chépica","Chimbarongo","Lolol","Nancagua","Palmilla","Peralillo","Placilla","Pumanque","Santa Cruz"],
+  "Maule": ["Talca","Constitución","Curepto","Empedrado","Maule","Pelarco","Pencahue","Río Claro","San Clemente","San Rafael","Cauquenes","Chanco","Pelluhue","Curicó","Hualañé","Licantén","Molina","Rauco","Romeral","Sagrada Familia","Teno","Vichuquén","Linares","Colbún","Longaví","Parral","Retiro","San Javier","Villa Alegre","Yerbas Buenas"],
+  "Ñuble": ["Chillán","Bulnes","Chillán Viejo","El Carmen","Pemuco","Pinto","Quillón","San Ignacio","Yungay","Quirihue","Cobquecura","Coelemu","Ninhue","Portezuelo","Ránquil","Treguaco","San Carlos","Coihueco","Ñiquén","San Fabián","San Nicolás"],
+  "Biobío": ["Concepción","Coronel","Chiguayante","Florida","Hualqui","Lota","Penco","San Pedro de la Paz","Santa Juana","Talcahuano","Tomé","Hualpén","Lebu","Arauco","Cañete","Contulmo","Curanilahue","Los Álamos","Tirúa","Los Ángeles","Antuco","Cabrero","Laja","Mulchén","Nacimiento","Negrete","Quilaco","Quilleco","San Rosendo","Santa Bárbara","Tucapel","Yumbel","Alto Biobío"],
+  "La Araucanía": ["Temuco","Carahue","Cunco","Curarrehue","Freire","Galvarino","Gorbea","Lautaro","Loncoche","Melipeuco","Nueva Imperial","Padre las Casas","Perquenco","Pitrufquén","Pucón","Saavedra","Teodoro Schmidt","Toltén","Vilcún","Villarrica","Cholchol","Angol","Collipulli","Curacautín","Ercilla","Lonquimay","Los Sauces","Lumaco","Purén","Renaico","Traiguén","Victoria"],
+  "Los Ríos": ["Valdivia","Corral","Lanco","Los Lagos","Máfil","Mariquina","Paillaco","Panguipulli","La Unión","Futrono","Lago Ranco","Río Bueno"],
+  "Los Lagos": ["Puerto Montt","Calbuco","Cochamó","Fresia","Frutillar","Los Muermos","Llanquihue","Maullín","Puerto Varas","Castro","Ancud","Chonchi","Curaco de Vélez","Dalcahue","Puqueldón","Queilén","Quellón","Quemchi","Quinchao","Osorno","Puerto Octay","Purranque","Puyehue","Río Negro","San Juan de la Costa","San Pablo","Chaitén","Futaleufú","Hualaihué","Palena"],
+  "Aysén": ["Coyhaique","Lago Verde","Aysén","Cisnes","Guaitecas","Cochrane","O'Higgins","Tortel","Chile Chico","Río Ibáñez"],
+  "Magallanes y de la Antártica Chilena": ["Punta Arenas","Laguna Blanca","Río Verde","San Gregorio","Cabo de Hornos","Antártica","Porvenir","Primavera","Timaukel","Natales","Torres del Paine"]
+};
+
+function openAddrModal(){
+  if(!currentSession){ toast('Debes iniciar sesión para agregar direcciones', true); return; }
+  $('#addrModalForm').reset();
+  const regionSel=$('#amod_region');
+  regionSel.innerHTML='<option value="">Selecciona una región</option>'+Object.keys(REGIONES_CHILE).map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  $('#amod_city').innerHTML='<option value="">Primero elige región</option>';
+  $('#amod_city').disabled=true;
+  setTimeout(initCustomSelects, 50); /* Permite que el DOM se renderice primero */
+  $('#addrModalOv').classList.add('show');
+
+  regionSel.onchange=()=>{
+    const region=regionSel.value;
+    const citySel=$('#amod_city');
+    if(!region){ citySel.innerHTML='<option value="">Primero elige región</option>'; citySel.disabled=true; createCustomSelect(citySel); return; }
+    const ciudades=REGIONES_CHILE[region];
+    citySel.disabled=false;
+    citySel.innerHTML='<option value="">Selecciona una ciudad/comuna</option>'+ciudades.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    createCustomSelect(citySel); /* re-sincroniza el dropdown visual con las nuevas opciones */
+  };
+
+  $('#amod_save').onclick=async()=>{
+    const street=$('#amod_street').value.trim(), number=$('#amod_number').value.trim(), apartment=$('#amod_apartment').value.trim(),
+          region=$('#amod_region').value, city=$('#amod_city').value, zip=$('#amod_zip').value.trim(), isDefault=$('#amod_default').checked;
+    if(!street||!number||!region||!city){ toast('Completa los campos requeridos', true); return; }
+
+    const c=Lloope.auth.client();
+    const session=await Lloope.auth.getSession();
+    const addr={ street, number, apartment:apartment||null, region, city, zip_code:zip||null, is_default:isDefault, user_id:session.user.id };
+    const {error}=await c.from('addresses').insert([addr]);
+    if(error){ toast('Error: '+error.message, true); }
+    else{ closeAddrModal(); toast('Dirección guardada'); loadAddressesForCheckout(); }
+  };
+}
+
+function closeAddrModal(){
+  $('#addrModalOv').classList.remove('show');
+  $('#amod_region').onchange=null;
+  $('#amod_save').onclick=null;
+}
+
+/* ============ CUSTOM SELECT DROPDOWN ============
+   Envuelve un <select> nativo en un dropdown propio. Es re-invocable: si el
+   select ya fue envuelto, en vez de crear todo de nuevo solo re-sincroniza
+   el trigger/lista con el estado actual (options/disabled/selectedIndex).
+   Esto es necesario porque cambiar .innerHTML o .disabled por código (como
+   al cascadear región → ciudad) NO dispara un evento 'change' nativo, así
+   que sin este refresh explícito el dropdown visual queda desincronizado
+   del <select> real (se ve "pegado" en el valor/placeholder anterior). */
+function createCustomSelect(selectEl){
+  const refresh=()=>{
+    const trigger=selectEl._csTrigger, optionsList=selectEl._csOptions;
+    const selected=selectEl.options[selectEl.selectedIndex];
+    trigger.textContent=selected ? selected.textContent : 'Selecciona';
+    trigger.classList.toggle('disabled', selectEl.disabled);
+    optionsList.innerHTML='';
+    [...selectEl.options].forEach((opt,i)=>{
+      const div=document.createElement('div');
+      div.className='select-option'+(selectEl.selectedIndex===i?' selected':'')+(opt.disabled?' disabled':'');
+      div.textContent=opt.textContent;
+      div.onclick=()=>{
+        if(opt.disabled) return;
+        selectEl.selectedIndex=i;
+        selectEl.dispatchEvent(new Event('change'));
+        optionsList.classList.remove('show'); trigger.classList.remove('open');
+      };
+      optionsList.appendChild(div);
+    });
+  };
+
+  if(selectEl.classList.contains('custom-select-init')){ refresh(); return; }
+  selectEl.classList.add('custom-select-init');
+  selectEl.style.display='none';
+
+  const wrapper=document.createElement('div');
+  wrapper.className='custom-select';
+  selectEl.parentNode.insertBefore(wrapper, selectEl);
+  wrapper.appendChild(selectEl);
+
+  const trigger=document.createElement('div');
+  trigger.className='select-trigger';
+  const optionsList=document.createElement('div');
+  optionsList.className='select-options';
+  wrapper.insertBefore(trigger, selectEl);
+  wrapper.insertBefore(optionsList, selectEl);
+  selectEl._csTrigger=trigger; selectEl._csOptions=optionsList;
+
+  trigger.onclick=e=>{
+    e.stopPropagation();
+    if(selectEl.disabled) return;
+    const willOpen=!optionsList.classList.contains('show');
+    document.querySelectorAll('.select-options.show').forEach(o=>o.classList.remove('show'));
+    document.querySelectorAll('.select-trigger.open').forEach(t=>t.classList.remove('open'));
+    if(willOpen){ optionsList.classList.add('show'); trigger.classList.add('open'); }
+  };
+
+  selectEl.addEventListener('change', refresh);
+  refresh();
+}
+
+/* Cierra cualquier dropdown abierto al hacer click fuera (un solo listener
+   global, no uno por select). */
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.select-options.show').forEach(o=>o.classList.remove('show'));
+  document.querySelectorAll('.select-trigger.open').forEach(t=>t.classList.remove('open'));
+});
+
+function initCustomSelects(){
+  document.querySelectorAll('select').forEach(sel=>createCustomSelect(sel));
+}
+
+let contact={}, cartCfg={}, coupons=[];
+let currentSession=null; // sesión Supabase activa (null si invitado o no configurado)
+let products=[];
+let cart=Lloope.getCart();
+let appliedCoupon=null;
+let WHATSAPP='';
+const waLink = msg => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
+const effPrice = p => Lloope.effPrice(p);
+
+function validateCoupon(codeRaw){
+  const code=String(codeRaw||'').trim().toUpperCase();
+  if(!code) return {ok:false,msg:'Ingresa un código de cupón.'};
+  const c=coupons.find(x=>String(x.code).toUpperCase()===code);
+  if(!c) return {ok:false,msg:'Ese cupón no existe.'};
+  if(!c.active) return {ok:false,msg:'Este cupón ya no está disponible.'};
+  const today=Lloope.today();
+  if(c.startDate && today<c.startDate) return {ok:false,msg:'Este cupón aún no está vigente.'};
+  if(c.endDate && today>c.endDate) return {ok:false,msg:'Este cupón ya venció.'};
+  if(c.singleUse && Lloope.isCouponUsedLocally(c.code)) return {ok:false,msg:'Este cupón de un solo uso ya fue utilizado.'};
+  return {ok:true,coupon:c};
+}
+function computeDiscount(subtotal){
+  if(!appliedCoupon) return 0;
+  if(appliedCoupon.type==='percent') return Math.round(subtotal*(Number(appliedCoupon.value)||0)/100);
+  return Math.min(Number(appliedCoupon.value)||0, subtotal);
+}
+
+function lineItems(){
+  return cart.map(i=>({ ...i, p: products.find(x=>x.id===i.id) })).filter(x=>x.p);
+}
+function subtotalOf(items){ return items.reduce((s,i)=> i.p.quote ? s : s+effPrice(i.p)*i.qty, 0); }
+
+function changeQty(id,d){
+  const item=cart.find(i=>i.id===id); if(!item)return;
+  const p=products.find(x=>x.id===id);
+  const maxQty=(p && !p.quote)?Math.max(0,Number(p.stock)||0):Infinity;
+  const next=item.qty+d;
+  if(d>0 && next>maxQty){ toast('Solo quedan '+maxQty+' unidades disponibles.', true); return; }
+  item.qty=next;
+  if(item.qty<=0) cart=cart.filter(i=>i.id!==id);
+  Lloope.setCart(cart);
+  render();
+}
+function removeItem(id){ cart=cart.filter(i=>i.id!==id); Lloope.setCart(cart); render(); }
+
+function applyCoupon(){
+  const items=lineItems(); const subtotal=subtotalOf(items);
+  const res=validateCoupon($('#couponInput').value);
+  const msgEl=$('#couponMsg');
+  if(!res.ok){ appliedCoupon=null; msgEl.textContent=res.msg; msgEl.className='coupon-msg err'; renderSummaryTotals(subtotal); return; }
+  appliedCoupon=res.coupon;
+  const desc=appliedCoupon.type==='percent'?(appliedCoupon.value+'% de descuento'):(CLP(appliedCoupon.value)+' de descuento');
+  msgEl.textContent='¡Cupón aplicado! '+desc; msgEl.className='coupon-msg ok';
+  renderSummaryTotals(subtotal);
+}
+
+function renderSummaryTotals(subtotal){
+  const discount=computeDiscount(subtotal);
+  const ship=Number(cartCfg.shippingCost)||0;
+  const total=Math.max(0,subtotal-discount)+ship;
+  $('#sumSubtotal').textContent=CLP(subtotal);
+  const discLine=$('#sumDiscount');
+  if(discount>0){ discLine.style.display='flex'; $('#sumDiscountLabel').textContent='Descuento ('+appliedCoupon.code+')'; $('#sumDiscountAmount').textContent='-'+CLP(discount); }
+  else discLine.style.display='none';
+  const shipLine=$('#sumShip');
+  if(ship>0){ shipLine.style.display='flex'; $('#sumShipAmount').textContent=CLP(ship); } else shipLine.style.display='none';
+  $('#sumTotal').textContent=CLP(total);
+  const min=Number(cartCfg.minPurchase)||0;
+  const warn=$('#minWarn');
+  if(min>0 && subtotal<min){ warn.style.display='block'; warn.textContent='Compra mínima: '+CLP(min)+'. Agrega '+CLP(min-subtotal)+' más para continuar.'; $('#finishBtn').disabled=true; }
+  else { warn.style.display='none'; $('#finishBtn').disabled=false; }
+}
+
+function render(){
+  const root=$('#cartRoot');
+  const items=lineItems();
+  if(items.length===0){
+    $('#checkoutSteps').style.display='none';
+    root.innerHTML=`<div class="panel empty-cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <h2>Tu carrito está vacío</h2>
+      <p>Explora el catálogo y agrega las piezas que más te gusten.</p>
+      <a href="index.html#catalogo" class="btn btn-wood">Ir al catálogo</a>
+    </div>`;
+    return;
+  }
+  /* Si hay sesión activa, precargamos nombre/correo/teléfono desde Supabase
+     (auth.users) en vez del perfil de invitado en localStorage — quedan
+     editables por si el cliente quiere usar otros datos para este pedido
+     puntual (ver Lloope.auth.updateUserMeta, que guarda los cambios de vuelta). */
+  const guestProfile=Lloope.getProfile()||{};
+  const profile=currentSession
+    ? { name:(currentSession.user.user_metadata&&currentSession.user.user_metadata.name)||'', email:currentSession.user.email||'', phone:(currentSession.user.user_metadata&&currentSession.user.user_metadata.phone)||'' }
+    : guestProfile;
+  const allowInvoice=!!cartCfg.allowInvoice;
+  root.innerHTML=`
+    <div class="cart-layout">
+      <div>
+        <div class="panel">
+          <h2>Documento de venta</h2>
+          ${allowInvoice ? `
+          <div class="doc-choice">
+            <label><input type="radio" name="doc" value="boleta" checked><span>Boleta</span></label>
+            <label><input type="radio" name="doc" value="factura"><span>Factura</span></label>
+          </div>
+          <div id="invoiceFields" style="display:none">
+            <div class="invoice-note">Estos datos se usan para que emitas tú la factura real. Este sitio no emite documentos tributarios electrónicos automáticamente.</div>
+            <div class="field"><label>RUT</label><input type="text" id="inv_rut" placeholder="77.123.456-7"></div>
+            <div class="field"><label>Razón social</label><input type="text" id="inv_rz"></div>
+            <div class="field"><label>Giro</label><input type="text" id="inv_giro"></div>
+            <div class="field"><label>Dirección</label><input type="text" id="inv_addr"></div>
+          </div>` : `<p style="font-size:.86rem;color:var(--coffee)">Se emitirá boleta. Si necesitas factura, indícalo al finalizar por WhatsApp.</p>`}
+        </div>
+        <div class="panel">
+          <h2 id="panelShip">Método de envío</h2>
+          <div class="doc-choice">
+            <label><input type="radio" name="shipping" value="despacho" checked><span>Despacho a domicilio</span></label>
+            <label><input type="radio" name="shipping" value="retiro"><span>Retiro en tienda</span></label>
+          </div>
+          <div id="addressSelector" style="margin-top:1rem">
+            <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:.35rem">Dirección de despacho *</label>
+            <div class="addr-cards" id="addrCards"><p style="font-size:.85rem;color:var(--coffee)">Cargando direcciones…</p></div>
+            <p style="font-size:.85rem;color:var(--coffee);margin-top:.7rem"><button type="button" class="btn btn-ghost" style="font-size:.9rem;padding:.5em 1.2em" onclick="openAddrModal()">+ Agregar nueva dirección</button></p>
+          </div>
+          <div id="pickupSection" style="margin-top:1rem;display:none">
+            <label class="field-check"><input type="checkbox" id="ck_pickup_other"> Otra persona retirará este pedido</label>
+            <div id="pickupOtherFields" style="display:none">
+              <div class="field"><label>Nombre de quien retira *</label><input type="text" id="ck_pickup_name" placeholder="Nombre completo"></div>
+              <div class="field"><label>RUT de quien retira *</label><input type="text" id="ck_pickup_rut" placeholder="12.345.678-9"></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2 id="panelData">Tus datos de contacto</h2>
+          <div class="field"><label>Nombre *</label><input type="text" id="ck_name" value="${esc(profile.name||'')}"></div>
+          <div class="field"><label>Correo *</label><input type="email" id="ck_email" value="${esc(profile.email||'')}"></div>
+          <div class="field"><label>Teléfono</label><input type="text" id="ck_phone" value="${esc(profile.phone||'')}" placeholder="+56 9 ..."></div>
+          <div class="field"><label>Instrucciones especiales <span class="hint">(opcional)</span></label><textarea id="ck_notes" placeholder="Ej: grabar el nombre &quot;Ana&quot;, envolver para regalo, etc."></textarea></div>
+          ${currentSession ? '' : `<label class="field-check"><input type="checkbox" id="ck_save" ${profile.name?'checked':'checked'}> Guardar mis datos en este navegador para la próxima compra</label>`}
+          <label class="field-check consent"><input type="checkbox" id="ck_consent"> Acepto los <a href="legal.html" target="_blank" rel="noopener">Términos</a> y la <a href="legal.html" target="_blank" rel="noopener">Política de Privacidad</a> de Lloope</label>
+          <div class="min-warn" id="minWarn" style="display:none"></div>
+          <button class="btn btn-wa btn-block" id="finishBtn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Z"/></svg>
+            Finalizar compra por WhatsApp
+          </button>
+        </div>
+      </div>
+      <div class="cart-summary-col">
+        <div class="panel" id="itemsPanel">
+          <h2>Productos (${items.reduce((s,i)=>s+i.qty,0)})</h2>
+          <div id="itemsList"></div>
+        </div>
+        <div class="panel">
+          <h2>Cupón de descuento</h2>
+          <div class="coupon-row"><input type="text" id="couponInput" placeholder="Código de cupón" maxlength="30"><button id="couponApply" type="button">Aplicar</button></div>
+          <div class="coupon-msg" id="couponMsg"></div>
+        </div>
+        <div class="panel">
+          <h2>Resumen</h2>
+          <div class="sumline"><span>Subtotal</span><span id="sumSubtotal">$0</span></div>
+          <div class="sumline discount" id="sumDiscount" style="display:none"><span id="sumDiscountLabel">Descuento</span><span id="sumDiscountAmount">-$0</span></div>
+          <div class="sumline" id="sumShip" style="display:none"><span>Despacho</span><span id="sumShipAmount">$0</span></div>
+          <div class="sumline total"><span>Total</span><span id="sumTotal">$0</span></div>
+          <div class="cart-trust">
+            <div><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 7v6c0 5 3.5 8 9 9 5.5-1 9-4 9-9V7l-9-5Z"/><path d="m9 12 2 2 4-4"/></svg>Compra segura</div>
+            <div><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.8 1 6.4 2.6"/><path d="M21 3v6h-6"/></svg>Cambios y devoluciones</div>
+            <div><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="15" height="12" rx="2"/><path d="M16 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>Envío a todo Chile</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  $('#itemsList').innerHTML=items.map(i=>`
+    <div class="row-item">
+      <div class="ri-img"><img src="${esc(i.p.image)}" alt="${esc(i.p.name)}"></div>
+      <div class="ri-info">
+        <span class="ri-cat">${esc(i.p.cat)}</span>
+        <h4>${esc(i.p.name)}</h4>
+        <div class="ri-price">${i.p.quote?'A cotizar':CLP(effPrice(i.p))}</div>
+      </div>
+      <div class="ri-controls">
+        <div class="qty">
+          <button onclick="changeQty(${i.p.id},-1)" aria-label="Quitar uno">−</button>
+          <span>${i.qty}</span>
+          <button onclick="changeQty(${i.p.id},1)" aria-label="Agregar uno">+</button>
+        </div>
+        <button class="ri-remove" onclick="removeItem(${i.p.id})" aria-label="Eliminar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </div>
+    </div>`).join('');
+
+  $('#couponApply').onclick=applyCoupon;
+  $('#couponInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); applyCoupon(); } });
+  document.querySelectorAll('input[name="doc"]').forEach(r=>r.onchange=()=>{
+    $('#invoiceFields').style.display = $('input[name="doc"]:checked').value==='factura' ? 'block' : 'none';
+  });
+  document.querySelectorAll('input[name="shipping"]').forEach(r=>r.onchange=()=>{
+    const isDespacho=$('input[name="shipping"]:checked').value==='despacho';
+    $('#addressSelector').style.display = isDespacho ? 'block' : 'none';
+    $('#pickupSection').style.display = isDespacho ? 'none' : 'block';
+  });
+  $('#ck_pickup_other').onchange=()=>{
+    $('#pickupOtherFields').style.display = $('#ck_pickup_other').checked ? 'block' : 'none';
+  };
+  $('#finishBtn').onclick=finishCheckout;
+
+  loadAddressesForCheckout();
+  renderSummaryTotals(subtotalOf(items));
+  initSteps();
+}
+
+async function loadAddressesForCheckout(){
+  if(!Lloope.auth.isConfigured()){
+    $('#addressSelector').style.display='none';
+    return;
+  }
+  const session=await Lloope.auth.getSession();
+  if(!session){
+    $('#addressSelector').style.display='none';
+    return;
+  }
+  const c=Lloope.auth.client();
+  const {data}=await c.from('addresses').select('*').eq('user_id',session.user.id).order('is_default',{ascending:false});
+  const box=$('#addrCards');
+  if(!data?.length){
+    box.innerHTML=`<div class="addr-empty">Todavía no tienes direcciones guardadas.<br><a href="#" onclick="openAddrModal(); return false" style="color:var(--wood);font-weight:700">Agrega una aquí →</a></div>`;
+    return;
+  }
+  box.innerHTML=data.map((a,i)=>`
+    <label class="addr-card">
+      <input type="radio" name="ck_address" value="${a.id}" ${i===0?'checked':''}>
+      <div>
+        <b>${esc(a.street)} ${esc(a.number)}${a.apartment?', '+esc(a.apartment):''}</b>
+        <span>${a.region?esc(a.region)+', ':''}${esc(a.city)}${a.zip_code?' · '+esc(a.zip_code):''}</span>
+        ${a.is_default?'<span class="addr-default-tag">Por defecto</span>':''}
+      </div>
+    </label>`).join('');
+}
+
+async function finishCheckout(){
+  const items=lineItems();
+  if(items.length===0) return;
+  const name=$('#ck_name').value.trim(), email=$('#ck_email').value.trim(), phone=$('#ck_phone').value.trim();
+  if(!name || !email){ toast('Completa tu nombre y correo para finalizar la compra.', true); return; }
+  if(!$('#ck_consent').checked){ toast('Debes aceptar los Términos y la Política de Privacidad para continuar.', true); return; }
+
+  const shippingMethod = $('input[name="shipping"]:checked').value || 'despacho';
+  let selectedAddress = null;
+  if(shippingMethod==='despacho'){
+    const addressRadio = document.querySelector('input[name="ck_address"]:checked');
+    if(!addressRadio){ toast('Selecciona una dirección de despacho o agrega una nueva.', true); return; }
+    const addressId = addressRadio.value;
+    if(Lloope.auth.isConfigured()){
+      const session = await Lloope.auth.getSession();
+      if(session){
+        const c = Lloope.auth.client();
+        const {data} = await c.from('addresses').select('*').eq('id',addressId).single();
+        selectedAddress = data;
+      }
+    }
+  }
+
+  let pickup=null;
+  if(shippingMethod==='retiro' && $('#ck_pickup_other').checked){
+    const pName=$('#ck_pickup_name').value.trim(), pRut=$('#ck_pickup_rut').value.trim();
+    if(!pName||!pRut){ toast('Completa el nombre y RUT de quien retirará el pedido.', true); return; }
+    pickup={ name:pName, rut:pRut };
+  }
+
+  const isFactura = cartCfg.allowInvoice && document.querySelector('input[name="doc"]:checked') && document.querySelector('input[name="doc"]:checked').value==='factura';
+  let invoiceData=null;
+  if(isFactura){
+    const rut=$('#inv_rut').value.trim(), rz=$('#inv_rz').value.trim();
+    if(!rut||!rz){ toast('Para factura, completa al menos el RUT y la razón social.', true); return; }
+    invoiceData={ rut, rz, giro:$('#inv_giro').value.trim(), addr:$('#inv_addr').value.trim() };
+  }
+  const notes=$('#ck_notes').value.trim();
+
+  const subtotal=subtotalOf(items);
+  const discount=computeDiscount(subtotal);
+  const ship=Number(cartCfg.shippingCost)||0;
+  const total=Math.max(0,subtotal-discount)+ship;
+
+  let msg=(contact.waMessage||'¡Hola Lloope! Quiero hacer este pedido:')+'\n\n';
+  items.forEach(i=>{ const line=i.p.quote?'A cotizar':CLP(effPrice(i.p)*i.qty); msg+=`• ${i.qty} × ${i.p.name} — ${line}\n`; });
+  if(appliedCoupon) msg+=`\nCupón: ${appliedCoupon.code} (-${CLP(discount)})`;
+  if(shippingMethod==='despacho'){
+    if(ship>0) msg+=`\nDespacho: ${CLP(ship)}`;
+    if(selectedAddress) msg+=`\nDirección: ${selectedAddress.street} ${selectedAddress.number}${selectedAddress.apartment?', '+selectedAddress.apartment:''}, ${selectedAddress.city}${selectedAddress.region?', '+selectedAddress.region:''}`;
+  } else {
+    msg+=`\nMétodo: Retiro en tienda`;
+    msg+= pickup ? `\nRetira: ${pickup.name} (RUT ${pickup.rut})` : `\nRetira: el mismo comprador`;
+  }
+  msg+=`\nTotal referencial: ${CLP(total)}`;
+  msg+=`\n\nDocumento: ${isFactura?'Factura':'Boleta'}`;
+  if(invoiceData) msg+=`\nRUT: ${invoiceData.rut}\nRazón social: ${invoiceData.rz}\nGiro: ${invoiceData.giro}\nDirección: ${invoiceData.addr}`;
+  if(notes) msg+=`\n\nInstrucciones especiales: ${notes}`;
+  msg+=`\n\nContacto: ${name}${phone?(' · '+phone):''} · ${email}`;
+  msg+=`\n\n${cartCfg.finishMessage||'¿Me confirman disponibilidad y despacho? ¡Gracias!'}`;
+  msg+=`\n\n(Este pedido queda sujeto a confirmación de stock y disponibilidad.)`;
+
+  /* El nombre/teléfono se guardan en el perfil: en Supabase si hay sesión
+     (así quedan disponibles desde cualquier dispositivo), o en localStorage
+     si es invitado (checkbox "Guardar mis datos", solo existe en ese caso). */
+  if(currentSession){ Lloope.auth.updateUserMeta({name, phone}); }
+  else if($('#ck_save') && $('#ck_save').checked){ Lloope.setProfile({name, email, phone}); }
+  if(appliedCoupon && appliedCoupon.singleUse) Lloope.markCouponUsedLocally(appliedCoupon.code);
+
+  window.open(waLink(msg),'_blank');
+
+  /* Si el cliente tiene sesión (cuenta real), registra el pedido en Supabase
+     para que aparezca en "Mis pedidos" y en el panel admin. Si no hay sesión
+     o Supabase no está configurado, esto no hace nada — el checkout sigue
+     funcionando igual que siempre por WhatsApp. */
+  if(Lloope.auth.isConfigured()){
+    const session=await Lloope.auth.getSession();
+    if(session){
+      Lloope.auth.createOrder({
+        customer: name, phone, email,
+        items: items.map(i=>({ name:i.p.name, qty:i.qty, price: i.p.quote?0:effPrice(i.p) })),
+        total,
+        pay_method: 'Por confirmar por WhatsApp',
+        pay_status: 'Pendiente de pago',
+        notes: [invoiceData ? `Factura — RUT ${invoiceData.rut}, ${invoiceData.rz}` : '', notes].filter(Boolean).join(' · ')
+      });
+    }
+  }
+
+  cart=[]; Lloope.clearCart(); appliedCoupon=null;
+  if(window._csScroll) window.removeEventListener('scroll', window._csScroll);
+  $('#checkoutSteps').style.display='none';
+  $('#cartRoot').innerHTML=`<div class="panel thankyou">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+    <h2>¡Pedido enviado por WhatsApp!</h2>
+    <p>Revisa la conversación que se abrió para confirmar los detalles con nosotros. Te contactaremos para coordinar personalización, pago y despacho.</p>
+    <a href="index.html" class="btn btn-wood">Volver a la tienda</a>
+  </div>`;
+}
+
+/* ---- Mi cuenta ----
+   Si Supabase no está configurado, se mantiene el perfil de invitado de
+   siempre. Si está configurado, se muestra login/crear cuenta y, con
+   sesión activa, "Mis pedidos" (mismo patrón que index.html). */
+async function renderAccountForm(){
+  if(!Lloope.auth.isConfigured()){ renderGuestProfileForm(); return; }
+  $('#accountFormWrap').innerHTML='<p class="acc-note">Cargando…</p>';
+  const session=await Lloope.auth.getSession();
+  if(session) renderLoggedInAccount(session); else renderAuthTabs();
+}
+
+/* El admin elige en Ajustes → Integraciones cuál de los tres usar (ver
+   Lloope.auth.authMethod()). Cada uno tiene su propia función de render;
+   esta sola decide cuál mostrar. */
+function renderAuthTabs(){
+  const method=Lloope.auth.authMethod();
+  if(method==='magiclink') renderMagicLinkAuth();
+  else if(method==='otp') renderOtpAuth();
+  else renderPasswordAuth();
+}
+
+function renderPasswordAuth(){
+  $('#accountTitle').textContent='Inicia sesión o crea tu cuenta';
+  $('#accountFormWrap').innerHTML=`
+    <div class="acc-tabs" id="accTabsWrap">
+      <button class="acc-tab active" type="button" id="accTabLogin">Iniciar sesión</button>
+      <button class="acc-tab" type="button" id="accTabSignup">Crear cuenta</button>
+    </div>
+    <div class="acc-error" id="accAuthError" style="display:none"></div>
+    <form id="accLoginForm" class="acc-panel">
+      <div class="field"><label>Correo</label><input type="email" id="accLoginEmail" required></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="accLoginPass" required></div>
+      <p style="text-align:right;margin:-.5rem 0 0"><a href="#" id="accForgotLink" style="font-size:.82rem;color:var(--wood);font-weight:700">¿Olvidaste tu contraseña?</a></p>
+      <button class="btn btn-wood btn-block" type="submit">Iniciar sesión</button>
+    </form>
+    <form id="accSignupForm" class="acc-panel" style="display:none">
+      <div class="field"><label>Nombre</label><input type="text" id="accSignupName" required></div>
+      <div class="field"><label>Correo</label><input type="email" id="accSignupEmail" required></div>
+      <div class="field"><label>Contraseña (mínimo 6 caracteres)</label><input type="password" id="accSignupPass" required minlength="6"></div>
+      <button class="btn btn-wood btn-block" type="submit">Crear cuenta</button>
+    </form>
+    <form id="accForgotForm" class="acc-panel" style="display:none">
+      <p class="acc-note" style="margin-bottom:1rem">Ingresa tu correo y te enviaremos un link para crear una nueva contraseña.</p>
+      <div class="field"><label>Correo</label><input type="email" id="accForgotEmail" required></div>
+      <button class="btn btn-wood btn-block" type="submit">Enviar link</button>
+      <button class="btn btn-ghost btn-block" type="button" id="accForgotBack" style="margin-top:.6rem">← Volver</button>
+    </form>
+    <div id="accForgotSent" class="acc-panel" style="display:none;text-align:center">
+      <p>📬 Revisa tu correo <b id="accForgotSentEmail"></b> y haz clic en el link para crear una nueva contraseña.</p>
+      <button class="btn btn-ghost btn-block" type="button" id="accForgotSentBack" style="margin-top:1rem">← Volver a iniciar sesión</button>
+    </div>`;
+  const showError=msg=>{ const e=$('#accAuthError'); e.textContent=msg; e.style.display='block'; };
+  const hideError=()=>{ $('#accAuthError').style.display='none'; };
+  const showPanel=id=>{
+    ['accLoginForm','accSignupForm','accForgotForm','accForgotSent'].forEach(x=>{ $('#'+x).style.display = x===id ? (id==='accForgotSent'?'block':'grid') : 'none'; });
+    $('#accTabsWrap').style.display = (id==='accForgotForm'||id==='accForgotSent') ? 'none' : 'flex';
+  };
+  $('#accTabLogin').onclick=()=>{ $('#accTabLogin').classList.add('active'); $('#accTabSignup').classList.remove('active'); showPanel('accLoginForm'); hideError(); };
+  $('#accTabSignup').onclick=()=>{ $('#accTabSignup').classList.add('active'); $('#accTabLogin').classList.remove('active'); showPanel('accSignupForm'); hideError(); };
+  $('#accLoginForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const {error}=await Lloope.auth.signIn($('#accLoginEmail').value.trim(), $('#accLoginPass').value);
+    if(error){ showError('No pudimos iniciar sesión: revisa tu correo y contraseña.'); return; }
+    await refreshSessionAndRender();
+    renderAccountForm();
+  });
+  $('#accSignupForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const name=$('#accSignupName').value.trim();
+    const {error}=await Lloope.auth.signUp($('#accSignupEmail').value.trim(), $('#accSignupPass').value, name);
+    if(error){ showError('No pudimos crear tu cuenta: '+error); return; }
+    await refreshSessionAndRender();
+    renderAccountForm();
+  });
+  $('#accForgotLink').onclick=e=>{ e.preventDefault(); hideError(); showPanel('accForgotForm'); $('#accForgotEmail').focus(); };
+  $('#accForgotBack').onclick=()=>{ hideError(); $('#accTabLogin').click(); };
+  $('#accForgotSentBack').onclick=()=>{ $('#accTabLogin').click(); };
+  $('#accForgotForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    hideError();
+    const email=$('#accForgotEmail').value.trim();
+    const {error}=await Lloope.auth.sendPasswordReset(email, window.location.href.split('#')[0]);
+    if(error){ showError('No pudimos enviar el link: '+error); return; }
+    $('#accForgotSentEmail').textContent=email;
+    showPanel('accForgotSent');
+  });
+}
+
+/* Se muestra cuando el cliente vuelve del link de "Olvidé mi contraseña". */
+function renderSetNewPassword(){
+  $('#accountTitle').textContent='Crea tu nueva contraseña';
+  $('#accountFormWrap').innerHTML=`
+    <div class="acc-error" id="accAuthError" style="display:none"></div>
+    <form id="accNewPassForm" class="acc-panel">
+      <p class="acc-note" style="margin-bottom:1rem">Ingresa tu nueva contraseña para continuar.</p>
+      <div class="field"><label>Nueva contraseña (mínimo 6 caracteres)</label><input type="password" id="accNewPass" required minlength="6"></div>
+      <button class="btn btn-wood btn-block" type="submit">Guardar contraseña</button>
+    </form>`;
+  const showError=msg=>{ const e=$('#accAuthError'); e.textContent=msg; e.style.display='block'; };
+  $('#accNewPassForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const {error}=await Lloope.auth.updatePassword($('#accNewPass').value);
+    if(error){ showError('No pudimos guardar la contraseña: '+error); return; }
+    await refreshSessionAndRender();
+    renderAccountForm();
+  });
+}
+
+function renderMagicLinkAuth(){
+  $('#accountTitle').textContent='Inicia sesión sin contraseña';
+  $('#accountFormWrap').innerHTML=`
+    <div class="acc-error" id="accAuthError" style="display:none"></div>
+    <form id="accMagicForm" class="acc-panel">
+      <p class="acc-note" style="margin-bottom:1rem">Te enviaremos un link a tu correo. Haz clic en él y quedarás dentro, sin contraseña.</p>
+      <div class="field"><label>Tu correo</label><input type="email" id="accMagicEmail" required></div>
+      <button class="btn btn-wood btn-block" type="submit">Enviar link de acceso</button>
+    </form>
+    <div id="accMagicSent" class="acc-panel" style="display:none;text-align:center">
+      <p>📬 Revisa tu correo <b id="accMagicSentEmail"></b> y haz clic en el link para iniciar sesión.</p>
+      <button class="btn btn-ghost btn-block" type="button" id="accMagicBack" style="margin-top:1rem">← Usar otro correo</button>
+    </div>`;
+  const showError=msg=>{ const e=$('#accAuthError'); e.textContent=msg; e.style.display='block'; };
+  const hideError=()=>{ $('#accAuthError').style.display='none'; };
+  $('#accMagicForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    hideError();
+    const email=$('#accMagicEmail').value.trim();
+    const {error}=await Lloope.auth.sendMagicLink(email, window.location.href.split('#')[0]);
+    if(error){ showError('No pudimos enviar el link: '+error); return; }
+    $('#accMagicSentEmail').textContent=email;
+    $('#accMagicForm').style.display='none';
+    $('#accMagicSent').style.display='block';
+  });
+  $('#accMagicBack').onclick=()=>{
+    $('#accMagicForm').style.display='grid';
+    $('#accMagicSent').style.display='none';
+    hideError();
+    $('#accMagicEmail').focus();
+  };
+}
+
+function renderOtpAuth(){
+  $('#accountTitle').textContent='Inicia sesión sin contraseña';
+  $('#accountFormWrap').innerHTML=`
+    <div class="acc-error" id="accAuthError" style="display:none"></div>
+    <form id="accOtpEmailForm" class="acc-panel">
+      <p class="acc-note" style="margin-bottom:1rem">Te enviaremos un código de 6 dígitos a tu correo.</p>
+      <div class="field"><label>Tu correo</label><input type="email" id="accOtpEmail" required></div>
+      <button class="btn btn-wood btn-block" type="submit">Enviar código</button>
+    </form>
+    <form id="accOtpVerifyForm" class="acc-panel" style="display:none">
+      <p class="acc-note" style="margin-bottom:1rem">Revisa tu correo y copia el código de 6 dígitos.</p>
+      <div class="field"><label>Código de verificación</label><input type="text" id="accOtpCode" maxlength="6" inputmode="numeric" required autocomplete="one-time-code"></div>
+      <button class="btn btn-wood btn-block" type="submit">Verificar</button>
+      <button class="btn btn-ghost btn-block" type="button" id="accOtpBack" style="margin-top:.5rem">← Volver</button>
+    </form>`;
+  const showError=msg=>{ const e=$('#accAuthError'); e.textContent=msg; e.style.display='block'; };
+  const hideError=()=>{ $('#accAuthError').style.display='none'; };
+  let otpEmail='';
+  $('#accOtpEmailForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    hideError();
+    otpEmail=$('#accOtpEmail').value.trim();
+    const {error}=await Lloope.auth.sendOtp(otpEmail);
+    if(error){ showError('No pudimos enviar el código: '+error); return; }
+    $('#accOtpEmailForm').style.display='none';
+    $('#accOtpVerifyForm').style.display='grid';
+    $('#accOtpCode').focus();
+  });
+  $('#accOtpVerifyForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    hideError();
+    const code=$('#accOtpCode').value.trim();
+    if(!/^\d{6}$/.test(code)){ showError('El código debe ser 6 dígitos'); return; }
+    const {error}=await Lloope.auth.verifyOtp(otpEmail, code);
+    if(error){ showError('Código inválido o expirado. '+error); return; }
+    await refreshSessionAndRender();
+    renderAccountForm();
+  });
+  $('#accOtpBack').onclick=()=>{
+    $('#accOtpEmailForm').style.display='grid';
+    $('#accOtpVerifyForm').style.display='none';
+    hideError();
+    $('#accOtpEmail').focus();
+  };
+}
+
+async function renderLoggedInAccount(session){
+  $('#accountTitle').textContent='Mi cuenta';
+  const name=(session.user.user_metadata&&session.user.user_metadata.name)||'Hola';
+  $('#accountFormWrap').innerHTML=`
+    <div class="acc-summary"><b>${esc(name)}</b><span>${esc(session.user.email)}</span></div>
+    <button class="btn btn-ghost btn-block" id="accLogout">Cerrar sesión</button>
+    <div class="acc-orders">
+      <h3>Mis pedidos</h3>
+      <div id="accOrdersList"><p class="acc-note">Cargando tus pedidos…</p></div>
+    </div>`;
+  $('#accLogout').onclick=async()=>{ await Lloope.auth.signOut(); await refreshSessionAndRender(); renderAccountForm(); };
+  const {data:orders, error}=await Lloope.auth.myOrders();
+  const listEl=$('#accOrdersList'); if(!listEl) return;
+  if(error){ listEl.innerHTML='<p class="acc-note">No pudimos cargar tus pedidos.</p>'; return; }
+  if(!orders.length){ listEl.innerHTML='<p class="acc-note">Todavía no tienes pedidos registrados.</p>'; return; }
+  listEl.innerHTML=orders.map(o=>`
+    <div class="acc-order">
+      <div class="acc-order-head"><b>${esc(new Date(o.created_at).toLocaleDateString('es-CL'))}</b><span class="badge2 ${Lloope.orderStatusBadgeClass(o.status)}">${esc(o.status)}</span></div>
+      <div class="acc-order-items">${(o.items||[]).map(it=>`${it.qty} × ${esc(it.name)}`).join(', ')}</div>
+      <div class="acc-order-total">${CLP(o.total)}</div>
+    </div>`).join('');
+}
+
+/* ---- Perfil de invitado (fallback si Supabase no está configurado) ---- */
+function renderGuestProfileForm(){
+  const profile=Lloope.getProfile();
+  const wrap=$('#accountFormWrap');
+  if(profile){
+    wrap.innerHTML=`
+      <p class="acc-note">Se guardan solo en este navegador para agilizar tu próxima compra. No es una cuenta con contraseña.</p>
+      <div class="acc-summary">
+        <b>${esc(profile.name||'')}</b>
+        <span>${esc(profile.email||'')}${profile.phone?' · '+esc(profile.phone):''}</span>
+      </div>
+      <div class="acc-actions"><button class="btn btn-ghost" id="accEdit">Editar</button><button class="btn btn-ghost" id="accForget">Olvidar mis datos</button></div>`;
+    $('#accEdit').onclick=()=>renderGuestProfileEditForm(profile);
+    $('#accForget').onclick=()=>{ showConfirm('¿Olvidar los datos guardados?', ()=>{ Lloope.clearProfile(); renderGuestProfileForm(); render(); toast('Datos olvidados'); }); };
+  } else renderGuestProfileEditForm(null);
+}
+function renderGuestProfileEditForm(profile){
+  profile=profile||{};
+  $('#accountFormWrap').innerHTML=`
+    <p class="acc-note">Se guardan solo en este navegador para agilizar tu próxima compra. No es una cuenta con contraseña.</p>
+    <div class="field"><label>Nombre</label><input type="text" id="acc_name" value="${esc(profile.name||'')}"></div>
+    <div class="field"><label>Correo</label><input type="email" id="acc_email" value="${esc(profile.email||'')}"></div>
+    <div class="field"><label>Teléfono</label><input type="text" id="acc_phone" value="${esc(profile.phone||'')}"></div>
+    <button class="btn btn-wood btn-block" id="accSave">Guardar</button>`;
+  $('#accSave').onclick=()=>{
+    const name=$('#acc_name').value.trim(), email=$('#acc_email').value.trim();
+    if(!name||!email){ toast('Nombre y correo son obligatorios.', true); return; }
+    Lloope.setProfile({name,email,phone:$('#acc_phone').value.trim()});
+    renderGuestProfileForm(); render();
+    toast('Datos guardados');
+  };
+}
+$('#accountBtn').onclick=()=>{ renderAccountForm(); $('#accountOverlay').style.display='flex'; document.body.style.overflow='hidden'; };
+$('#accountClose').onclick=()=>{ $('#accountOverlay').style.display='none'; document.body.style.overflow=''; };
+$('#accountOverlay').addEventListener('click',e=>{ if(e.target===$('#accountOverlay')){ $('#accountOverlay').style.display='none'; document.body.style.overflow=''; } });
+
+/* ============ CHECKOUT STEP INDICATOR ============ */
+function setStep(n){
+  document.querySelectorAll('.cs-step').forEach((el,i)=>{
+    el.classList.toggle('done', i < n);
+    el.classList.toggle('active', i === n);
+    el.querySelector('.cs-dot').textContent = i < n ? '✓' : String(i+1);
+  });
+}
+function initSteps(){
+  $('#checkoutSteps').style.display='';
+  const onScroll=()=>{
+    const mid=window.innerHeight * 0.55;
+    let step=0;
+    const ship=$('#panelShip'), data=$('#panelData'), fin=$('#finishBtn');
+    if(fin && fin.getBoundingClientRect().top < mid) step=3;
+    else if(data && data.getBoundingClientRect().top < mid) step=2;
+    else if(ship && ship.getBoundingClientRect().top < mid) step=1;
+    setStep(step);
+  };
+  if(window._csScroll) window.removeEventListener('scroll', window._csScroll);
+  window._csScroll=onScroll;
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+}
+
+/* ---- Arranque ---- */
+async function boot(){
+  const DATA=await Lloope.loadPublicData();
+  contact=DATA.contact; cartCfg=DATA.cart; coupons=DATA.coupons||[];
+  products=DATA.products||[];
+  Lloope.auth.init(DATA.supabase); // config publicada por el admin, no la de este navegador
+  WHATSAPP=String(contact.whatsapp||'').replace(/\D/g,'');
+
+  /* Si el cliente vuelve desde el magic link o desde el link de "olvidé mi
+     contraseña" que le enviamos por correo, Supabase deja la sesión
+     codificada en el hash de la URL (#access_token=…). getSession() la
+     detecta y la persiste; luego limpiamos la URL y abrimos "Mi cuenta".
+     type=recovery distingue "vengo a poner contraseña nueva" del login normal. */
+  if(Lloope.auth.isConfigured() && window.location.hash.includes('access_token')){
+    const isRecovery=window.location.hash.includes('type=recovery');
+    await Lloope.auth.getSession();
+    history.replaceState(null,'',window.location.pathname+window.location.search);
+    $('#accountOverlay').style.display='flex'; document.body.style.overflow='hidden';
+    if(isRecovery) renderSetNewPassword(); else renderAccountForm();
+  }
+  const settings=DATA.settings||{};
+  $('.brand-name').textContent=settings.storeName||'Lloope';
+  const logo=(DATA.images&&DATA.images.logo)||settings.logo;
+  if(logo) $('.brand-logo').src=logo;
+  document.title='Tu carrito · '+(settings.storeName||'Lloope');
+  if(Lloope.auth.isConfigured()) currentSession=await Lloope.auth.getSession();
+  render();
+}
+
+/* Se llama tras iniciar/cerrar sesión desde el modal "Mi cuenta" para que el
+   formulario de contacto del checkout se actualice con (o deje de mostrar)
+   los datos precargados, sin tener que recargar la página. */
+async function refreshSessionAndRender(){
+  currentSession = Lloope.auth.isConfigured() ? await Lloope.auth.getSession() : null;
+  render();
+}
+boot();
+</script>
+</body>
+</html>

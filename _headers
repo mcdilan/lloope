@@ -1,0 +1,23 @@
+# Cabeceras de seguridad básicas.
+# Compatibles con Cloudflare Pages y Netlify (se leen automáticamente, sin configuración extra).
+# GitHub Pages NO soporta este archivo — es una razón más para preferir Cloudflare Pages / Netlify.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# El panel admin no debe indexarse en buscadores (además del <meta robots> en el HTML).
+/admin.html
+  X-Robots-Tag: noindex, nofollow
+
+# El archivo publicado cambia cada vez que usas "Publicar cambios": cache corto
+# para que los visitantes vean cambios recientes sin esperar demasiado.
+/data/store.json
+  Cache-Control: public, max-age=60, must-revalidate
+
+# Imágenes: pueden cachearse por más tiempo porque cambian poco.
+/img/*
+  Cache-Control: public, max-age=604800, immutable

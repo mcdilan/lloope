@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lloope · Panel de administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Jost:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="img/logo-mark.png" />
+<script src="lloope-data.js?v=3"></script>
+<script src="js/supabase.js?v=2.110.0"></script>
+<style>
+  :root{
+    --cream:#FBF6EE; --cream-2:#F4EADB; --sand:#EADBC6; --paper:#FFFFFF;
+    --espresso:#2B211A; --coffee:#5A4636; --wood:#B06B3E; --wood-dark:#8A4E2C;
+    --copper:#C0824B; --gold:#CAA25A; --sage:#7E8B69;
+    --ok:#2f9e6f; --warn:#c98a2b; --danger:#c14a4a; --info:#3b6ea5;
+    --line:rgba(43,33,26,.12); --line-2:rgba(43,33,26,.07);
+    --shadow-sm:0 4px 14px rgba(70,46,26,.08);
+    --shadow:0 18px 40px -18px rgba(70,46,26,.28);
+    --shadow-lg:0 40px 80px -30px rgba(70,46,26,.4);
+    --r-lg:22px; --r-md:14px; --r-sm:10px;
+    --serif:"Fraunces",Georgia,serif; --sans:"Manrope",system-ui,sans-serif; --brand:"Jost",system-ui,sans-serif;
+    --sidebar:264px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--espresso);background:var(--cream-2);line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.15}
+  img{display:block;max-width:100%}
+  input,select,textarea{font-family:inherit}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:var(--sand);border-radius:10px}
+
+  /* ============ BUTTONS ============ */
+  .btn{display:inline-flex;align-items:center;gap:.5em;justify-content:center;padding:.68em 1.2em;border-radius:100px;font-weight:700;font-size:.9rem;transition:transform .2s,box-shadow .2s,background .2s,opacity .2s;white-space:nowrap}
+  .btn svg{width:17px;height:17px}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:var(--espresso);color:#fff;box-shadow:var(--shadow-sm)}
+  .btn-wood{background:linear-gradient(135deg,var(--wood),var(--wood-dark));color:#fff;box-shadow:0 12px 22px -12px rgba(138,78,44,.7)}
+  .btn-ghost{background:var(--paper);color:var(--espresso);border:1.5px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--espresso)}
+  .btn-danger{background:#fbeaea;color:var(--danger)}
+  .btn-danger:hover{background:var(--danger);color:#fff}
+  .btn-sm{padding:.5em .85em;font-size:.82rem}
+  .btn-block{width:100%}
+
+  /* ============ LOGIN ============ */
+  .login{position:fixed;inset:0;z-index:200;display:grid;grid-template-columns:1.1fr 1fr;background:var(--cream)}
+  .login-art{position:relative;overflow:hidden;background:var(--espresso);display:flex;flex-direction:column;justify-content:space-between;padding:48px;color:#f2e7d7}
+  .login-art::after{content:"";position:absolute;inset:0;background:url('img/panel-tropical.jpeg') center/cover;opacity:.16}
+  .login-art .la-top,.login-art .la-bottom{position:relative;z-index:1}
+  .login-art .brand{display:flex;align-items:center;gap:.7rem;font-family:var(--brand);text-transform:uppercase;letter-spacing:.16em;font-size:1.3rem}
+  .login-art .brand .mark{width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center}
+  .login-art .brand .mark img{width:78%;height:78%;object-fit:contain}
+  .login-art h2{font-size:2.4rem;max-width:14ch;margin-bottom:1rem;color:#fff}
+  .login-art p{opacity:.8;max-width:34ch}
+  .login-form-wrap{display:grid;place-items:start center;padding:32px;height:100%;overflow-y:auto}
+  .login-card{width:100%;max-width:400px;margin:auto 0}
+  .login-card .eyebrow{font-size:.72rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--copper)}
+  .login-card h1{font-size:2rem;margin:.5rem 0 .3rem}
+  .login-card>p{color:var(--coffee);margin-bottom:1.8rem;font-size:.94rem}
+  .login-demo{background:var(--cream-2);border:1px dashed var(--wood);border-radius:var(--r-md);padding:14px 16px;font-size:.82rem;color:var(--coffee);margin-bottom:1.4rem}
+  .login-demo b{color:var(--espresso)}
+  .login-error{background:#fbeaea;color:var(--danger);border-radius:var(--r-sm);padding:.7em 1em;font-size:.85rem;font-weight:600;margin-bottom:1rem;display:none}
+  .login-error.show{display:block}
+
+  /* ============ FIELDS ============ */
+  .field{margin-bottom:1rem}
+  .field label{font-size:.8rem;font-weight:700;display:block;margin-bottom:.4rem;color:var(--coffee)}
+  .field label .hint{font-weight:500;color:var(--coffee);opacity:.7}
+  .field input[type=text],.field input[type=email],.field input[type=password],.field input[type=number],.field input[type=url],.field input[type=date],.field textarea,.field select{
+    width:100%;padding:.72em .9em;border-radius:var(--r-sm);border:1.5px solid var(--line);background:#fff;font-size:.92rem;color:var(--espresso);transition:border .2s,box-shadow .2s}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--wood);box-shadow:0 0 0 4px rgba(176,107,62,.12)}
+  .field input:disabled,.field textarea:disabled,.field select:disabled,.field input[readonly],.field textarea[readonly]{background:var(--cream);color:var(--coffee);cursor:not-allowed}
+  .field input[type=date]{color-scheme:light}
+  .field input[type=date]::-webkit-calendar-picker-indicator{opacity:.5;cursor:pointer;filter:invert(40%) sepia(60%) saturate(500%) hue-rotate(345deg)}
+  .field input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
+  .field textarea{resize:vertical;min-height:90px;line-height:1.5}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 18px}
+  .switch{display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.4rem 0}
+  .switch input{display:none}
+  .switch .track{width:44px;height:26px;border-radius:100px;background:var(--sand);position:relative;transition:background .25s;flex:none}
+  .switch .track::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:transform .25s}
+  .switch input:checked+.track{background:var(--sage)}
+  .switch input:checked+.track::after{transform:translateX(18px)}
+  .switch span.lbl{font-size:.9rem;font-weight:600}
+
+  /* ============ APP SHELL ============ */
+  .app{display:none;min-height:100vh}
+  .app.on{display:block}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);background:var(--espresso);color:#e9dcc9;display:flex;flex-direction:column;z-index:60;transition:transform .3s}
+  .sb-brand{display:flex;align-items:center;gap:.7rem;padding:22px 22px 18px;font-family:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:1.2rem;color:#fff}
+  .sb-brand .mark{width:40px;height:40px;border-radius:11px;background:#fff;display:grid;place-items:center;flex:none}
+  .sb-brand .mark img{width:78%;height:78%;object-fit:contain}
+  .sb-brand small{display:block;font-family:var(--sans);font-size:.5rem;letter-spacing:.3em;color:var(--gold);margin-top:.2em}
+  .sb-nav{flex:1;overflow-y:auto;padding:8px 12px 20px}
+  .sb-nav .group{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);padding:16px 12px 6px;font-weight:700}
+  .sb-link{display:flex;align-items:center;gap:.8rem;padding:.7em .8em;border-radius:11px;color:#d8c7b2;font-weight:600;font-size:.9rem;transition:background .2s,color .2s;position:relative}
+  .sb-link svg{width:19px;height:19px;flex:none;opacity:.9}
+  .sb-link:hover{background:rgba(255,255,255,.07);color:#fff}
+  .sb-link.active{background:linear-gradient(135deg,var(--wood),var(--wood-dark));color:#fff;box-shadow:0 10px 20px -10px rgba(0,0,0,.5)}
+  .sb-link .badge{margin-left:auto;background:rgba(255,255,255,.16);color:#fff;font-size:.7rem;font-weight:800;border-radius:100px;padding:.05em .55em}
+  .sb-foot{padding:14px 16px;border-top:1px solid rgba(255,255,255,.1)}
+
+  .main{margin-left:var(--sidebar);min-height:100vh;display:flex;flex-direction:column}
+  .topbar{position:sticky;top:0;z-index:40;background:rgba(251,246,238,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:1rem;padding:14px 26px}
+  .topbar .burger{display:none;width:42px;height:42px;border-radius:11px;background:var(--paper);box-shadow:var(--shadow-sm);place-items:center}
+  .topbar h1{font-size:1.35rem;font-family:var(--serif)}
+  .topbar .sub{color:var(--coffee);font-size:.82rem}
+  .topbar .spacer{flex:1}
+  .topbar .tb-actions{display:flex;align-items:center;gap:.6rem}
+  .chip-view{display:inline-flex;align-items:center;gap:.4em;font-size:.82rem;font-weight:600;color:var(--coffee);background:var(--paper);border:1px solid var(--line);border-radius:100px;padding:.45em .9em}
+  .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--wood),var(--wood-dark));color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem}
+  .content{padding:28px 26px 60px;max-width:1200px;width:100%}
+  .view{display:none;animation:fade .4s ease}
+  .view.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* ============ CARDS / SECTIONS ============ */
+  .panel{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);border:1px solid var(--line-2);padding:24px;margin-bottom:22px}
+  .panel h2{font-size:1.25rem;margin-bottom:.3rem}
+  .panel .lead{color:var(--coffee);font-size:.9rem;margin-bottom:1.2rem}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap}
+  .panel-head h2{margin-bottom:0}
+  .section-title{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:18px;flex-wrap:wrap}
+  .section-title .st-x h2{font-size:1.6rem}
+  .section-title .st-x p{color:var(--coffee);font-size:.9rem}
+
+  /* Dashboard stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+  .stat{background:var(--paper);border-radius:var(--r-md);padding:18px;box-shadow:var(--shadow-sm);border:1px solid var(--line-2)}
+  .stat .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;margin-bottom:12px}
+  .stat .ic svg{width:22px;height:22px}
+  .stat b{font-family:var(--serif);font-size:1.9rem;display:block;line-height:1}
+  .stat span{color:var(--coffee);font-size:.82rem}
+  .i-wood{background:#f6e9dd;color:var(--wood)} .i-sage{background:#e9eee1;color:var(--sage)}
+  .i-gold{background:#f7efd9;color:#a9832f} .i-danger{background:#fbe9e9;color:var(--danger)}
+  .i-info{background:#e6eef7;color:var(--info)}
+  .dash-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+  /* Tables */
+  .tbl-wrap{overflow-x:auto;border-radius:var(--r-md);border:1px solid var(--line-2)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;background:var(--paper)}
+  th{text-align:left;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--coffee);font-weight:800;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--cream)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--cream)}
+  .t-img{width:46px;height:46px;border-radius:9px;object-fit:cover;background:var(--sand)}
+  .t-name{font-weight:700}
+  .t-sub{font-size:.76rem;color:var(--coffee)}
+  .row-actions{display:flex;gap:.35rem;flex-wrap:wrap}
+  .iconbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--cream);border:1px solid var(--line-2);transition:background .2s,color .2s,transform .2s}
+  .iconbtn:hover{transform:translateY(-2px)}
+  .iconbtn svg{width:16px;height:16px}
+  .iconbtn.edit:hover{background:var(--wood);color:#fff}
+  .iconbtn.del:hover{background:var(--danger);color:#fff}
+  .iconbtn.star.on{color:var(--gold)}
+
+  /* Badges */
+  .badge2{display:inline-flex;align-items:center;gap:.35em;font-size:.72rem;font-weight:800;padding:.3em .7em;border-radius:100px}
+  .b-on{background:#e4f2ea;color:var(--ok)} .b-off{background:#f0e9e3;color:var(--coffee)}
+  .b-warn{background:#f9efdc;color:var(--warn)} .b-danger{background:#fbe9e9;color:var(--danger)}
+  .b-info{background:#e6eef7;color:var(--info)}
+  .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+  .form-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:.5rem;flex-wrap:wrap}
+  .divider{height:1px;background:var(--line);margin:1.4rem 0}
+  .note{display:flex;gap:.7rem;background:#fff8ec;border:1px solid #f0dcae;border-radius:var(--r-md);padding:14px 16px;font-size:.83rem;color:#7a5a1e;margin-bottom:1.2rem}
+  .note.red{background:#fdeeee;border-color:#f2c9c9;color:#8a3b3b}
+  .note svg{width:20px;height:20px;flex:none;margin-top:1px}
+  .thumb{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r-md);background:var(--sand);border:1px solid var(--line-2)}
+  .thumb.sm{aspect-ratio:1/1;max-width:120px}
+  .uploader{border:2px dashed var(--line);border-radius:var(--r-md);padding:24px 16px;text-align:center;transition:all .2s;background:var(--cream);cursor:pointer;position:relative}
+  .uploader:hover{border-color:var(--wood);background:linear-gradient(135deg, var(--cream), #fff8f3)}
+  .uploader.dragover{border-color:var(--wood);border-width:2px;background:rgba(176,107,62,.08);box-shadow:0 0 0 4px rgba(176,107,62,.06)}
+  .uploader input{display:none}
+  .uploader-label{display:block;font-size:.9rem;font-weight:700;color:var(--wood);cursor:pointer;margin-bottom:.25rem}
+  .uploader-hint{display:block;font-size:.75rem;color:var(--coffee);margin-top:.25rem}
+  /* ------ combobox de sugerencias ------ */
+  .combobox{position:relative}
+  .cb-list{position:absolute;top:calc(100% + 3px);left:0;right:0;background:#fff;border:1.5px solid var(--wood);border-radius:var(--r-sm);box-shadow:var(--shadow-sm);z-index:300;max-height:190px;overflow-y:auto;display:none}
+  .cb-list.show{display:block}
+  .cb-opt{padding:.44em .9em;cursor:pointer;font-size:.9rem;color:var(--espresso);line-height:1.4}
+  .cb-opt:hover,.cb-opt.cb-focused{background:var(--cream-2)}
+  .cb-opt b{color:var(--wood);font-weight:700}
+  .cb-opt.cb-empty{color:var(--coffee);cursor:default;font-style:italic}
+  /* ------ tags de opciones en admin fieldOptions ------ */
+  .fo-tags{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;align-content:flex-start}
+  .fo-tag{display:inline-flex;align-items:center;gap:4px;background:var(--cream-2);border:1px solid var(--sand);border-radius:20px;padding:3px 8px 3px 12px;font-size:.83rem;color:var(--espresso)}
+  .fo-tag button{background:none;border:none;cursor:pointer;color:var(--coffee);padding:0 2px;display:flex;align-items:center;opacity:.6;transition:opacity .15s}
+  .fo-tag button:hover{opacity:1;color:var(--danger)}
+  .fo-tag button svg{width:14px;height:14px}
+  .gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+  .gal-item{position:relative;border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow-sm)}
+  .gal-item img{width:100%;aspect-ratio:1/1;object-fit:cover}
+  .gal-item .rm{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:8px;background:rgba(43,33,26,.7);color:#fff;display:grid;place-items:center}
+  .gal-item .rm svg{width:15px;height:15px}
+
+  .pay-method{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:10px;background:var(--cream)}
+  .pay-method .pm-x{display:flex;align-items:center;gap:.8rem}
+  .pay-method .pm-ic{width:38px;height:38px;border-radius:10px;background:var(--paper);display:grid;place-items:center;box-shadow:var(--shadow-sm);font-weight:800;font-size:.8rem;color:var(--wood)}
+
+  .color-row{display:flex;align-items:center;gap:.7rem;margin-bottom:1rem}
+  .color-row input[type=color]{width:52px;height:40px;border:1px solid var(--line);border-radius:10px;background:none;cursor:pointer;padding:2px}
+  .color-row .cx b{display:block;font-size:.85rem}
+  .color-row .cx span{font-size:.75rem;color:var(--coffee)}
+
+  /* Modal */
+  .modal-ov{position:fixed;inset:0;background:rgba(30,20,14,.55);backdrop-filter:blur(3px);z-index:120;display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
+  .modal-ov.on{display:flex}
+  .modal{background:var(--cream);border-radius:var(--r-lg);width:100%;max-width:720px;box-shadow:var(--shadow-lg);margin:auto}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--cream);border-radius:var(--r-lg) var(--r-lg) 0 0;z-index:2}
+  .modal-head h3{font-size:1.3rem}
+  .modal-body{padding:22px 24px}
+  .modal-foot{padding:16px 24px 22px;display:flex;gap:.6rem;justify-content:flex-end;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--cream);flex-wrap:wrap}
+  .x-btn{width:38px;height:38px;border-radius:10px;background:var(--paper);display:grid;place-items:center;box-shadow:var(--shadow-sm)}
+  .x-btn svg{width:18px;height:18px}
+
+  /* Toast */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,140%);z-index:300;background:var(--espresso);color:#fff;padding:.85em 1.3em;border-radius:100px;font-weight:600;font-size:.9rem;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:.55em;transition:transform .4s cubic-bezier(.3,.8,.3,1)}
+  .toast.show{transform:translate(-50%,0)}
+  .toast.warn{background:#b45309}
+  .toast.err{background:#dc2626}
+  .toast svg{width:18px;height:18px;color:var(--sage)}
+
+  .empty-row{padding:40px;text-align:center;color:var(--coffee)}
+  .list-mini{display:grid;gap:10px}
+  .list-mini .lm{display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--r-md);background:var(--cream)}
+  .list-mini .lm img{width:42px;height:42px;border-radius:9px;object-fit:cover}
+  .list-mini .lm .lm-x{flex:1;min-width:0}
+  .list-mini .lm b{font-size:.88rem;display:block}
+  .list-mini .lm span{font-size:.76rem;color:var(--coffee)}
+
+  .backdrop{position:fixed;inset:0;background:rgba(30,20,14,.4);z-index:55;display:none}
+  .backdrop.on{display:block}
+
+  @media(max-width:1080px){ .stats{grid-template-columns:repeat(2,1fr)} .dash-2{grid-template-columns:1fr} }
+  @media(max-width:860px){
+    .sidebar{transform:translateX(-100%)} .sidebar.open{transform:translateX(0)}
+    .main{margin-left:0}
+    .topbar .burger{display:grid}
+    .login{grid-template-columns:1fr} .login-art{display:none}
+    .grid-2,.grid-3{grid-template-columns:1fr}
+  }
+  @media(max-width:560px){ .stats{grid-template-columns:1fr} .content{padding:20px 16px 50px} }
+  /* ============ TABLE SORT + PAGER ============ */
+  .th-sort{cursor:pointer;user-select:none;white-space:nowrap}
+  .th-sort:hover{color:var(--espresso)}
+  .th-sort::after{content:' ⇅';opacity:.28;font-size:.7em}
+  .th-sort.asc::after{content:' ↑';opacity:.85}
+  .th-sort.desc::after{content:' ↓';opacity:.85}
+  .tbl-foot{display:flex;align-items:center;justify-content:space-between;min-height:36px;padding:.3rem 0;gap:8px}
+  .pg-sz-group{display:flex;align-items:center;gap:3px;flex-shrink:0}
+  .pg-sz{min-width:30px;height:26px;border-radius:6px;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-family:inherit;font-size:.78rem;color:var(--coffee);padding:0 5px;transition:border-color .15s,color .15s,background .15s}
+  .pg-sz:hover:not(.on){border-color:var(--wood);color:var(--wood)}
+  .pg-sz.on{background:var(--espresso);color:#fff;border-color:var(--espresso)}
+  .pg-info{font-size:.78rem;color:var(--coffee);opacity:.65;white-space:nowrap}
+  .pager{display:flex;align-items:center;gap:3px;flex-shrink:0}
+  .pager button{min-width:28px;height:28px;border-radius:7px;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-family:inherit;font-size:.82rem;color:var(--coffee);transition:border-color .15s,color .15s,background .15s;padding:0 5px}
+  .pager button:hover:not(:disabled){border-color:var(--wood);color:var(--wood)}
+  .pager button.on{background:var(--espresso);color:#fff;border-color:var(--espresso)}
+  .pager button:disabled{opacity:.35;cursor:not-allowed}
+  .pager .pg-dots{padding:0 2px;opacity:.45;font-size:.8rem}
+</style>
+</head>
+<body>
+
+<!-- ============================ LOGIN ============================ -->
+<!--
+  Login real vía Supabase Auth (Lloope.auth.signIn), no credenciales
+  hardcodeadas. Requiere: 1) configurar Supabase desde esta misma pantalla o
+  desde Ajustes → Integraciones ya logueado, 2) crear el usuario admin en
+  Supabase (Authentication → Users), 3) marcar su fila en la tabla `profiles`
+  con role="admin". Ver PRODUCCION.md sección 5.
+-->
+<div class="login" id="loginScreen" style="display:none">
+  <div class="login-art">
+    <div class="la-top">
+      <div class="brand"><span class="mark"><img src="img/logo-mark.png" alt="Lloope"/></span> Lloope</div>
+    </div>
+    <div class="la-bottom">
+      <h2>Panel de administración</h2>
+      <p>Administra productos, imágenes, contacto, carrito, pagos y pedidos de tu tienda, sin tocar código.</p>
+    </div>
+  </div>
+  <div class="login-form-wrap">
+    <form class="login-card" id="loginForm">
+      <span class="eyebrow">Bienvenido de vuelta</span>
+      <h1>Inicia sesión</h1>
+      <p>Ingresa tus credenciales para administrar Lloope.</p>
+      <div class="login-demo" id="loginDemo">
+        🔑 Inicia sesión con la cuenta de administrador que creaste en Supabase.
+      </div>
+      <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+      <div class="field"><label>Correo</label><input type="email" id="loginEmail" placeholder="tu@correo.cl" autocomplete="username"/></div>
+      <div class="field"><label>Contraseña</label><div style="position:relative"><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/><button type="button" id="passToggle" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:var(--coffee);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <button class="btn btn-wood btn-block" type="submit" style="margin-top:.4rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>
+        Entrar al panel
+      </button>
+      <p style="margin-top:1.2rem;font-size:.82rem"><a href="index.html" style="color:var(--wood);font-weight:700">← Volver a la tienda</a></p>
+    </form>
+  </div>
+</div>
+
+<!-- ============================ APP ============================ -->
+<div class="app" id="app">
+  <div class="backdrop" id="backdrop"></div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <span class="mark"><img src="img/logo-mark.png" alt="Lloope"/></span>
+      <span>Lloope<small>Admin</small></span>
+    </div>
+    <nav class="sb-nav" id="sbNav"></nav>
+    <div class="sb-foot">
+      <button class="btn btn-ghost btn-block" id="logoutBtn2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="burger" id="burger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <div>
+        <h1 id="viewTitle">Dashboard</h1>
+        <div class="sub" id="viewSub">Resumen general de tu tienda</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="tb-actions">
+        <a href="index.html" target="_blank" class="chip-view"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Ver tienda</a>
+        <button class="btn btn-wood btn-sm" id="publishBtn" title="Descargar data/store.json para subir al hosting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg> Publicar cambios</button>
+        <button class="btn btn-ghost btn-sm" id="resetBtn" title="Restaurar datos de prueba"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg> Restaurar demo</button>
+        <div class="avatar" id="avatar">AL</div>
+      </div>
+    </div>
+    <div class="content" id="content"><!-- vistas inyectadas --></div>
+  </div>
+</div>
+
+<!-- MODAL genérico -->
+<div class="modal-ov" id="modalOv">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalTitle">Título</h3><button class="x-btn" id="modalClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg><span id="toastMsg">Guardado</span></div>
+
+<script>
+/* =====================================================================
+   LLOOPE · ADMIN  (mockup con localStorage vía lloope-data.js)
+===================================================================== */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const CLP = n => Lloope.money(n);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const escAttr = s => esc(s).replace(/'/g,"&#39;");
+
+/* ============ TABLE SORT + PAGER HELPERS ============ */
+const TPAGE=20;
+function sortRows(arr,col,dir,getVal){
+  return [...arr].sort((a,b)=>{
+    let av=getVal(a,col), bv=getVal(b,col);
+    if(typeof av==='string') av=av.toLowerCase();
+    if(typeof bv==='string') bv=bv.toLowerCase();
+    if(av===bv) return 0;
+    return (av<bv?-1:1)*(dir==='asc'?1:-1);
+  });
+}
+function pageSlice(arr,pg,ps){ return arr.slice((pg-1)*ps, pg*ps); }
+function renderPager(divId,total,pg,fnName,ps,psFn){
+  const el=document.getElementById(divId); if(!el) return;
+  const pages=Math.ceil(total/ps)||1;
+  const from=total===0?0:(pg-1)*ps+1;
+  const to=Math.min(pg*ps,total);
+  const szBtn=n=>'<button class="pg-sz'+(n===ps?' on':'')+'" onclick="'+psFn+'('+n+')">'+n+'</button>';
+  const b=(n,t,dis,on)=>'<button '+(dis?'disabled ':'')+' '+(on?'class="on"':'')+' onclick="'+fnName+'('+n+')">'+t+'</button>';
+  let nav='';
+  if(pages>1){
+    nav+=b(pg-1,'‹',pg===1,false);
+    for(let i=1;i<=pages;i++){
+      if(i===1||i===pages||Math.abs(i-pg)<=1) nav+=b(i,String(i),false,i===pg);
+      else if(Math.abs(i-pg)===2) nav+='<span class="pg-dots">…</span>';
+    }
+    nav+=b(pg+1,'›',pg===pages,false);
+  }
+  el.innerHTML='<span class="pg-sz-group">'+[10,20,50].map(szBtn).join('')+'</span>'
+    +'<span class="pg-info">'+(total===0?'Sin registros':from+'–'+to+' de '+total)+'</span>'
+    +'<div class="pager">'+nav+'</div>';
+}
+function updateSortHead(headId,col,dir){
+  $$('#'+headId+' .th-sort').forEach(th=>{ th.classList.remove('asc','desc'); if(th.dataset.col===col) th.classList.add(dir); });
+}
+
+/* ============ TOAST ============ */
+let toastT;
+function toast(msg,type){ var t=$('#toast'); t.className='toast'+(type?' '+type:''); $('#toastMsg').textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('show'); },2500); }
+
+/* ============ LOGIN (Supabase Auth real, ver comentario arriba) ============ */
+function showLoginError(msg){ const e=$('#loginError'); e.textContent=msg; e.classList.add('show'); }
+
+$('#passToggle').addEventListener('click', e=>{
+  e.preventDefault();
+  const inp=$('#loginPass');
+  inp.type=inp.type==='password'?'text':'password';
+});
+
+$('#loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  if(!Lloope.auth.isConfigured()){
+    showLoginError('Backend no configurado: pega tu URL y anon key de Supabase arriba antes de poder iniciar sesión.');
+    return;
+  }
+  const {error}=await Lloope.auth.signIn($('#loginEmail').value, $('#loginPass').value);
+  if(error){ showLoginError('Usuario o contraseña incorrectos.'); return; }
+  if(!(await Lloope.auth.isAdmin())){
+    await Lloope.auth.signOut();
+    showLoginError('Esta cuenta no tiene permisos de administrador.');
+    return;
+  }
+  showApp();
+});
+async function logout(){ await Lloope.auth.signOut(); location.reload(); }
+$('#logoutBtn2').onclick=logout;
+
+async function showApp(){
+  _currentRole=await Lloope.auth.getRole()||'admin';
+  $('#loginScreen').style.display='none';
+  $('#app').classList.add('on');
+  buildNav();
+  const hashId=location.hash.slice(1);
+  go(NAV.find(x=>x.id===hashId)?hashId:'dashboard');
+}
+
+/* ============ NAV ============ */
+const NAV=[
+  {id:'dashboard', label:'Dashboard',   grp:'General', title:'Dashboard', sub:'Resumen general de tu tienda', icon:'M3 13h8V3H3v10Zm10 8h8v-6h-8v6ZM3 21h8v-6H3v6ZM13 3v8h8V3h-8Z'},
+  {id:'home',      label:'Inicio',      grp:'Contenido', title:'Página de inicio', sub:'Edita el hero y las secciones visibles', icon:'M3 12l9-9 9 9M5 10v10h14V10'},
+  {id:'menu',      label:'Menú público',grp:'Contenido', title:'Menú público', sub:'Opciones visibles del menú de la tienda', icon:'M4 6h16M4 12h16M4 18h16'},
+  {id:'products',  label:'Productos',   grp:'Catálogo', title:'Productos', sub:'Crea, edita y publica productos', icon:'M20 7L12 3 4 7l8 4 8-4ZM4 7v10l8 4 8-4V7M12 11v10'},
+  {id:'categories', label:'Categorías',    grp:'Catálogo', title:'Categorías', sub:'Organiza tu catálogo', icon:'M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z'},
+  {id:'fieldOptions',label:'Opciones de campos',grp:'Catálogo', title:'Opciones de campos', sub:'Sugerencias para Material, Medidas y Tiempo de fabricación', icon:'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 4 0M9 5h6M9 12h6M9 16h4'},
+  {id:'images',     label:'Imágenes',      grp:'Catálogo', title:'Imágenes', sub:'Logo, hero y galería del sitio', icon:'M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 6'},
+  {id:'contact',   label:'Contacto',    grp:'Tienda', title:'Contacto', sub:'Datos de contacto y redes', icon:'M4 4h16v16H4zM4 8l8 5 8-5'},
+  {id:'cart',      label:'Carrito',     grp:'Tienda', title:'Carrito', sub:'Configuración del carrito y despachos', icon:'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18M16 10a4 4 0 0 1-8 0'},
+  {id:'payment',   label:'Pagos',       grp:'Tienda', title:'Pagos', sub:'Medios de pago (configuración visual)', icon:'M2 7h20v10H2zM2 11h20M6 15h4'},
+  {id:'orders',    label:'Pedidos',     grp:'Tienda', title:'Pedidos', sub:'Pedidos simulados y estados', icon:'M6 2h9l3 3v17H6zM9 7h6M9 11h6M9 15h4'},
+  {id:'banners',   label:'Banners',     grp:'Marketing', title:'Banners de campaña', sub:'Cyber Day, Black Friday, aniversario y más', icon:'M3 5h18v10H3zM3 19h12M8 15v4'},
+  {id:'corpLogos', label:'Marcas / Logos', grp:'Marketing', title:'Marcas que confían en Lloope', sub:'Carrusel de logos en la sección Corporativo', icon:'M4 4h16v16H4zM4 9h16M9 4v16'},
+  {id:'coupons',   label:'Cupones',     grp:'Marketing', title:'Cupones de descuento', sub:'Códigos de descuento para el carrito', icon:'M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z M9 9h.01'},
+  {id:'legal',     label:'Textos legales',grp:'Ajustes', title:'Textos legales', sub:'Términos, privacidad y políticas', icon:'M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z'},
+  {id:'settings',  label:'Configuración general',grp:'Ajustes', title:'Configuración general', sub:'Identidad visual y estado de la tienda', icon:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM19.4 15a7.9 7.9 0 0 0 .1-2l2-1.5-2-3.5-2.3 1a8 8 0 0 0-1.7-1l-.3-2.5h-4l-.3 2.5a8 8 0 0 0-1.7 1l-2.3-1-2 3.5L4.5 13a7.9 7.9 0 0 0 0 2l-2 1.5 2 3.5 2.3-1a8 8 0 0 0 1.7 1l.3 2.5h4l.3-2.5a8 8 0 0 0 1.7-1l2.3 1 2-3.5-2-1.5Z'},
+  {id:'users',     label:'Usuarios',    grp:'Ajustes', title:'Usuarios administradores', sub:'Equipo y roles (simulado)', icon:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'},
+  {id:'integrations',label:'Integraciones',grp:'Ajustes', title:'Integraciones', sub:'Conecta Supabase para cuentas y pedidos reales', icon:'M8 3H5a2 2 0 0 0-2 2v3m0 8v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3m0-8V5a2 2 0 0 0-2-2h-3'}
+];
+function buildNav(){
+  let html=''; let lastGrp='';
+  NAV.filter(n=>n.id!=='integrations'||_currentRole==='sysadmin').forEach(n=>{
+    if(n.grp!==lastGrp){ html+=`<div class="group">${n.grp}</div>`; lastGrp=n.grp; }
+    const badge = n.id==='products' ? `<span class="badge" data-badge="products"></span>`
+               : n.id==='orders'   ? `<span class="badge" data-badge="orders"></span>` : '';
+    html+=`<a class="sb-link" data-nav="${n.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${n.icon}"/></svg><span>${n.label}</span>${badge}</a>`;
+  });
+  $('#sbNav').innerHTML=html;
+  $$('#sbNav .sb-link').forEach(a=>a.onclick=()=>{ go(a.dataset.nav); closeSidebar(); });
+  refreshBadges();
+}
+async function refreshBadges(){
+  let p;
+  if(getApiUrl()){
+    if(!_products.length){ const r=await apiFetch('/api/products',{},false); if(!r.error&&r.products) _products=r.products.map(normProduct); }
+    p=_products.length;
+  } else { p=Lloope.get('products').length; }
+  $$('[data-badge="products"]').forEach(b=>b.textContent=p);
+  if(!Lloope.auth.isConfigured()){ $$('[data-badge="orders"]').forEach(b=>b.textContent=0); return; }
+  const {data:orders}=await Lloope.auth.allOrders();
+  $$('[data-badge="orders"]').forEach(b=>b.textContent=(orders||[]).length);
+}
+let currentView='dashboard';
+function go(id){
+  const n=NAV.find(x=>x.id===id)||NAV[0];
+  id=n.id;
+  currentView=id;
+  if(location.hash.slice(1)!==id) location.hash=id;
+  $('#viewTitle').textContent=n.title; $('#viewSub').textContent=n.sub;
+  $$('#sbNav .sb-link').forEach(a=>a.classList.toggle('active',a.dataset.nav===id));
+  const c=$('#content'); c.innerHTML='';
+  VIEWS[id]&&VIEWS[id](c);
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',()=>{
+  const id=location.hash.slice(1);
+  if(id && id!==currentView && NAV.find(x=>x.id===id) && $('#app').classList.contains('on')) go(id);
+});
+
+/* Sidebar responsive */
+$('#burger').onclick=()=>{ $('#sidebar').classList.add('open'); $('#backdrop').classList.add('on'); };
+function closeSidebar(){ $('#sidebar').classList.remove('open'); $('#backdrop').classList.remove('on'); }
+$('#backdrop').onclick=closeSidebar;
+
+/* Restaurar demo */
+$('#resetBtn').onclick=async()=>{
+  const ok=await deleteConfirm('Se perderán todos los cambios del panel. Los datos de Supabase se conservarán.','¿Restaurar datos de prueba?');
+  if(ok){ Lloope.resetAll(); toast('Datos de prueba restaurados'); buildNav(); go(currentView); }
+};
+
+/* Publicar cambios: descarga data/store.json con el contenido actual del panel.
+   Ese archivo hay que subirlo al hosting para que TODOS los visitantes vean los
+   cambios (localStorage no se comparte entre navegadores/dispositivos). */
+$('#publishBtn').onclick=async()=>{
+  /* Si hay API configurada, sincronizar productos/categorías al localStorage antes de publicar */
+  if(getApiUrl()){
+    const [pr,ca]=await Promise.all([apiFetch('/api/products',{},false),apiFetch('/api/categories',{},false)]);
+    if(!pr.error && pr.products){ _products=pr.products.map(normProduct); Lloope.set('products',_products); }
+    if(!ca.error && ca.categories){ _categories=ca.categories.map(c=>({id:c.id,name:c.name,image:c.image||'',active:c.active??true,order:c.ord||0})); Lloope.set('categories',_categories); }
+  }
+  Lloope.publish();
+  openModal('Cómo publicar tus cambios',`
+    <p style="margin-bottom:1rem">Se descargó el archivo <b>store.json</b>. Para que tus visitantes vean estos cambios:</p>
+    <ol style="padding-left:1.2rem;display:grid;gap:.6rem;color:var(--coffee);font-size:.92rem">
+      <li>Renombra o mueve el archivo descargado a la carpeta <b>data/</b> de tu sitio, reemplazando el <code>store.json</code> anterior.</li>
+      <li>Sube esa carpeta a tu hosting (arrastra el archivo en el panel de Cloudflare Pages / Netlify, o haz commit y push si usas GitHub).</li>
+      <li>Espera 1–2 minutos y recarga tu sitio: los cambios ya deberían verse para cualquier visitante.</li>
+    </ol>
+    <div class="note" style="margin-top:1.2rem;margin-bottom:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>Este botón no sube el archivo por ti (este mockup no tiene servidor propio): solo lo prepara para que lo subas tú. Los pedidos y usuarios <b>no</b> se incluyen en este archivo por seguridad.</div></div>`,
+    `<button class="btn btn-wood" onclick="closeModal()">Entendido</button>`);
+};
+
+/* ============ Helpers de UI ============ */
+function save(key,val,msg){ if(Lloope.set(key,val)){ toast(msg||'Cambios guardados'); refreshBadges(); } }
+function badge(active){ return active?'<span class="badge2 b-on"><span class="dot"></span>Activo</span>':'<span class="badge2 b-off"><span class="dot"></span>Inactivo</span>'; }
+function fileToBase64(file, cb){
+  if(!/image\/(jpeg|jpg|png|webp)/.test(file.type)){ toast('Formato no recomendado. Usa JPG, PNG o WebP.','warn'); return; }
+  const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(file);
+}
+/* Modal */
+function openModal(title, bodyHTML, footHTML){
+  $('#modalTitle').textContent=title; $('#modalBody').innerHTML=bodyHTML; $('#modalFoot').innerHTML=footHTML||'';
+  $('#modalOv').classList.add('on');
+  setTimeout(setupUploaders, 0); /* Permite que el DOM se renderice antes */
+}
+function closeModal(){ $('#modalOv').classList.remove('on'); }
+function confirmModal(title,body,okLabel){
+  return new Promise(function(resolve){
+    openModal(title,body,'<button class="btn btn-ghost" id="cmCancel">Cancelar</button><button class="btn btn-wood" id="cmOk">'+(okLabel||'Confirmar')+'</button>');
+    var done=false, fin=function(v){ if(!done){ done=true; resolve(v); }};
+    $('#cmOk').onclick=function(){ closeModal(); fin(true); };
+    $('#cmCancel').onclick=function(){ closeModal(); fin(false); };
+    var pClose=$('#modalClose').onclick;
+    $('#modalClose').onclick=function(){ fin(false); if(pClose) pClose(); };
+    $('#modalOv').addEventListener('click',function h(e){ if(e.target===$('#modalOv')){ fin(false); $('#modalOv').removeEventListener('click',h); }});
+  });
+}
+function deleteConfirm(msg,title){
+  return new Promise(function(resolve){
+    openModal(title||'Confirmar eliminación',[
+      '<div style="display:flex;gap:1rem;align-items:flex-start;padding:.5rem 0">',
+      '<div style="width:44px;height:44px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">',
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+      '</div>',
+      '<div><p style="margin:0 0 .3rem;font-weight:700;color:var(--espresso)">Esta acción no se puede deshacer</p>',
+      '<p style="margin:0;color:var(--coffee);font-size:.9rem">'+msg+'</p></div></div>'
+    ].join(''),
+    '<button class="btn btn-ghost" id="cmCancel">Cancelar</button>'
+    +'<button id="cmOk" style="background:#dc2626;color:#fff;border:none;padding:.55rem 1.2rem;border-radius:var(--r-md);font-weight:600;cursor:pointer;font-size:.9rem;font-family:var(--sans)">Sí, eliminar</button>');
+    var done=false, fin=function(v){ if(!done){ done=true; resolve(v); }};
+    $('#cmOk').onclick=function(){ closeModal(); fin(true); };
+    $('#cmCancel').onclick=function(){ closeModal(); fin(false); };
+    var pClose=$('#modalClose').onclick;
+    $('#modalClose').onclick=function(){ fin(false); if(pClose) pClose(); };
+    $('#modalOv').addEventListener('click',function h(e){ if(e.target===$('#modalOv')){ fin(false); $('#modalOv').removeEventListener('click',h); }});
+  });
+}
+$('#modalClose').onclick=closeModal;
+$('#modalOv').addEventListener('click',e=>{ if(e.target===$('#modalOv')) closeModal(); });
+
+/* Íconos reutilizables */
+const IC={
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeoff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A9.6 9.6 0 0 1 12 4c6.5 0 10 7 10 7a13 13 0 0 1-2.2 3M6.6 6.6A13 13 0 0 0 2 11s3.5 7 10 7a9.6 9.6 0 0 0 3.4-.6M3 3l18 18"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l2.9 5.9 6.1.9-4.5 4.3 1 6.1L12 17.8 6.5 20.2l1-6.1L3 9.8l6.1-.9Z"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>',
+  wa:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Z"/></svg>'
+};
+
+/* =====================================================================
+   VISTAS
+===================================================================== */
+const VIEWS={};
+
+/* ---------- DASHBOARD ---------- */
+VIEWS.dashboard=(c)=>{
+  const products=_products.length?_products:Lloope.get('products');
+  const cats=_categories.length?_categories:Lloope.get('categories');
+  const cartCfg=Lloope.get('cart'), pay=Lloope.get('payment');
+  const active=products.filter(p=>p.active).length;
+  const outStock=products.filter(p=>!p.quote && Number(p.stock)<=0).length;
+  const payCount=Object.values(pay.methods).filter(Boolean).length;
+  const latestP=[...products].sort((a,b)=>b.id-a.id).slice(0,5);
+  c.innerHTML=`
+    ${Lloope.auth.isConfigured() ? '' : `
+    <div class="note red">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+      <div><b>Backend no configurado.</b> El login del panel y los pedidos todavía no usan una cuenta real: falta conectar Supabase en <b>Ajustes → Integraciones</b>. <a href="#" onclick="go('integrations');return false" style="text-decoration:underline;color:inherit">Ir ahora</a>.</div>
+    </div>`}
+    <div class="stats">
+      ${stat('i-wood', IC_box, products.length, 'Productos totales')}
+      ${stat('i-sage', IC_check, active, 'Productos activos')}
+      ${stat('i-danger', IC_alert, outStock, 'Sin stock')}
+      ${stat('i-gold', IC_tag, cats.length, 'Categorías')}
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="ic i-info">${IC_bag}</div><b id="dashOrderCount">…</b><span>Pedidos registrados</span></div>
+      ${stat(cartCfg.enabled?'i-sage':'i-danger', IC_cart, cartCfg.enabled?'Activo':'Off', 'Estado del carrito')}
+      ${stat('i-gold', IC_card, payCount, 'Medios de pago activos')}
+      ${stat('i-wood', IC_store, Lloope.get('settings').status==='active'?'Online':'Mant.', 'Estado tienda')}
+    </div>
+    <div class="dash-2">
+      <div class="panel">
+        <div class="panel-head"><h2>Últimos productos</h2><button class="btn btn-ghost btn-sm" onclick="go('products')">Ver todos</button></div>
+        <div class="list-mini">${latestP.map(p=>`
+          <div class="lm"><img src="${escAttr(p.image)}" alt=""><div class="lm-x"><b>${esc(p.name)}</b><span>${esc(p.cat)} · ${p.quote?'A cotizar':CLP(p.price)}</span></div>${badge(p.active)}</div>`).join('')}
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Últimos pedidos</h2><button class="btn btn-ghost btn-sm" onclick="go('orders')">Ver todos</button></div>
+        <div class="list-mini" id="dashLatestOrders">${Lloope.auth.isConfigured() ? 'Cargando…' : '<div class="empty-row">Conecta Supabase para ver pedidos reales aquí.</div>'}</div>
+      </div>
+    </div>`;
+  loadDashboardOrders();
+};
+async function loadDashboardOrders(){
+  if(!Lloope.auth.isConfigured()){ const el=$('#dashOrderCount'); if(el) el.textContent='—'; return; }
+  const {data:orders, error}=await Lloope.auth.allOrders();
+  const countEl=$('#dashOrderCount'), listEl=$('#dashLatestOrders');
+  if(!countEl || !listEl) return; // el usuario pudo haber cambiado de vista mientras cargaba
+  if(error){ countEl.textContent='—'; listEl.innerHTML='<div class="empty-row">No se pudieron cargar los pedidos.</div>'; return; }
+  countEl.textContent=orders.length;
+  const latestO=orders.slice(0,5);
+  listEl.innerHTML=latestO.map(o=>`
+    <div class="lm"><div class="lm-x"><b>${esc(o.customer)}</b><span>${esc(new Date(o.created_at).toLocaleDateString('es-CL'))} · ${CLP(o.total)}</span></div>${orderBadge(o.status)}</div>`).join('')||'<div class="empty-row">Sin pedidos</div>';
+}
+const IC_box='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 12 3 4 7l8 4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg>';
+const IC_check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4 12 14.01l-3-3"/></svg>';
+const IC_alert='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>';
+const IC_tag='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>';
+const IC_bag='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4ZM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>';
+const IC_cart=IC_bag;
+const IC_card='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>';
+const IC_store='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9 4 4h16l1 5M4 9v11h16V9M4 9h16"/></svg>';
+function stat(cls,icon,val,label){ return `<div class="stat"><div class="ic ${cls}">${icon}</div><b>${val}</b><span>${label}</span></div>`; }
+
+/* ---------- INICIO (HOME) ---------- */
+VIEWS.home=(c)=>{
+  const h=Lloope.get('home');
+  c.innerHTML=`
+    <div class="panel">
+      <h2>Sección principal (Hero)</h2>
+      <p class="lead">Estos textos e imágenes aparecen al inicio de la tienda.</p>
+      <div class="field"><label>Etiqueta superior</label><input type="text" id="h_eyebrow" value="${escAttr(h.heroEyebrow)}"></div>
+      <div class="field"><label>Título principal</label><input type="text" id="h_title" value="${escAttr(h.heroTitle)}"></div>
+      <div class="field"><label>Palabras destacadas <span class="hint">(se pintan en color madera dentro del título)</span></label><input type="text" id="h_high" value="${escAttr(h.heroHighlight)}"></div>
+      <div class="field"><label>Subtítulo</label><textarea id="h_sub">${esc(h.heroSubtitle)}</textarea></div>
+      <div class="grid-2">
+        <div class="field"><label>Texto del botón principal</label><input type="text" id="h_cta" value="${escAttr(h.heroCtaText)}"></div>
+        <div class="field"><label>Enlace del botón</label><input type="text" id="h_ctal" value="${escAttr(h.heroCtaLink)}"></div>
+      </div>
+      <div class="field"><label>Texto del sello sobre la imagen</label><input type="text" id="h_badge" value="${escAttr(h.heroBadge)}"></div>
+      <div class="grid-2">
+        <div class="field"><label>Imagen principal del hero</label>
+          <img class="thumb" id="h_img_prev" src="${escAttr(h.heroImage)}"><div style="height:8px"></div>
+          <input type="text" id="h_img" value="${escAttr(h.heroImage)}" placeholder="img/... o URL">
+          <div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="h_img_file"></div>
+        </div>
+        <div class="field"><label>Imagen secundaria (flotante)</label>
+          <img class="thumb" id="h_img2_prev" src="${escAttr(h.heroFloatImage)}"><div style="height:8px"></div>
+          <input type="text" id="h_img2" value="${escAttr(h.heroFloatImage)}" placeholder="img/... o URL">
+          <div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="h_img2_file"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Secciones visibles</h2>
+      <p class="lead">Muestra u oculta secciones completas de la página pública.</p>
+      ${sw('h_feat','Mostrar catálogo / productos destacados',h.showFeatured)}
+      ${sw('h_about','Mostrar sección “Sobre Lloope”',h.showAbout)}
+      ${sw('h_gal','Mostrar galería',h.showGallery)}
+      ${sw('h_contact','Mostrar contacto',h.showContact)}
+      <div class="form-actions"><button class="btn btn-wood" id="h_save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Guardar cambios</button></div>
+    </div>`;
+  setupUploaders();
+  bindFilePreview('h_img_file','h_img','h_img_prev');
+  bindFilePreview('h_img2_file','h_img2','h_img2_prev');
+  $('#h_img').oninput=e=>$('#h_img_prev').src=e.target.value;
+  $('#h_img2').oninput=e=>$('#h_img2_prev').src=e.target.value;
+  $('#h_save').onclick=()=>{
+    save('home',{
+      heroEyebrow:$('#h_eyebrow').value, heroTitle:$('#h_title').value, heroHighlight:$('#h_high').value,
+      heroSubtitle:$('#h_sub').value, heroCtaText:$('#h_cta').value, heroCtaLink:$('#h_ctal').value,
+      heroBadge:$('#h_badge').value, heroImage:$('#h_img').value, heroFloatImage:$('#h_img2').value,
+      showFeatured:$('#h_feat').checked, showAbout:$('#h_about').checked, showGallery:$('#h_gal').checked, showContact:$('#h_contact').checked
+    },'Inicio actualizado');
+  };
+};
+function sw(id,label,checked){ return `<label class="switch"><input type="checkbox" id="${id}" ${checked?'checked':''}><span class="track"></span><span class="lbl">${label}</span></label>`; }
+function bindFilePreview(fileId,inputId,prevId){
+  const f=$('#'+fileId); if(!f)return;
+  f.onchange=e=>{ const file=e.target.files[0]; if(!file)return; fileToBase64(file,b64=>{ $('#'+inputId).value=b64; $('#'+prevId).src=b64; toast('Imagen cargada (se guarda al presionar Guardar)'); }); };
+}
+
+/* ---------- MENÚ PÚBLICO ---------- */
+VIEWS.menu=(c)=>{
+  const items=Lloope.get('menu').sort((a,b)=>a.order-b.order);
+  c.innerHTML=`
+    <div class="panel">
+      <div class="panel-head"><div><h2>Opciones del menú</h2><p class="lead" style="margin:0">Ordena, activa/desactiva o elimina las opciones visibles en la barra superior de la tienda.</p></div>
+      <button class="btn btn-wood" id="menuAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nueva opción</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Orden</th><th>Nombre</th><th>Enlace</th><th>Estado</th><th style="text-align:right">Acciones</th></tr></thead>
+      <tbody id="menuBody"></tbody></table></div>
+    </div>`;
+  renderMenuTable();
+  $('#menuAdd').onclick=()=>editMenu(null);
+};
+function renderMenuTable(){
+  const items=Lloope.get('menu').sort((a,b)=>a.order-b.order);
+  $('#menuBody').innerHTML=items.map((m,i)=>`
+    <tr>
+      <td><div class="row-actions"><button class="iconbtn" ${i===0?'disabled style=opacity:.3':''} onclick="moveMenu(${m.id},-1)">${IC.up}</button><button class="iconbtn" ${i===items.length-1?'disabled style=opacity:.3':''} onclick="moveMenu(${m.id},1)">${IC.down}</button></div></td>
+      <td class="t-name">${esc(m.label)}</td>
+      <td><span class="t-sub">${esc(m.link)}</span></td>
+      <td>${badge(m.active)}</td>
+      <td><div class="row-actions" style="justify-content:flex-end">
+        <button class="iconbtn" onclick="toggleMenu(${m.id})" title="Activar/desactivar">${m.active?IC.eye:IC.eyeoff}</button>
+        <button class="iconbtn edit" onclick="editMenu(${m.id})">${IC.edit}</button>
+        <button class="iconbtn del" onclick="delMenu(${m.id})">${IC.del}</button>
+      </div></td>
+    </tr>`).join('')||'<tr><td colspan="5" class="empty-row">Sin opciones de menú</td></tr>';
+}
+function moveMenu(id,dir){
+  const items=Lloope.get('menu').sort((a,b)=>a.order-b.order);
+  const i=items.findIndex(x=>x.id===id), j=i+dir; if(j<0||j>=items.length)return;
+  [items[i].order,items[j].order]=[items[j].order,items[i].order];
+  Lloope.set('menu',items); renderMenuTable(); toast('Orden actualizado');
+}
+function toggleMenu(id){ const items=Lloope.get('menu'); const m=items.find(x=>x.id===id); m.active=!m.active; Lloope.set('menu',items); renderMenuTable(); }
+async function delMenu(id){ if(!await deleteConfirm('Se eliminará esta opción del menú de navegación.'))return; let items=Lloope.get('menu').filter(x=>x.id!==id); Lloope.set('menu',items); renderMenuTable(); refreshBadges(); toast('Opción eliminada'); }
+function editMenu(id){
+  const items=Lloope.get('menu'); const m=id?items.find(x=>x.id===id):{label:'',link:'#',active:true};
+  openModal(id?'Editar opción':'Nueva opción',`
+    <div class="field"><label>Nombre visible</label><input type="text" id="m_label" value="${escAttr(m.label)}" placeholder="Ej: Catálogo"></div>
+    <div class="field"><label>Enlace / sección destino</label><input type="text" id="m_link" value="${escAttr(m.link)}" placeholder="#catalogo o https://..."></div>
+    ${sw('m_active','Opción activa',m.active)}`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-wood" id="m_ok">Guardar</button>`);
+  $('#m_ok').onclick=()=>{
+    const label=$('#m_label').value.trim(); if(!label){toast('El nombre es obligatorio','warn');return;}
+    const list=Lloope.get('menu');
+    if(id){ const it=list.find(x=>x.id===id); it.label=label; it.link=$('#m_link').value.trim()||'#'; it.active=$('#m_active').checked; }
+    else{ list.push({id:Lloope.nextId(list),label,link:$('#m_link').value.trim()||'#',active:$('#m_active').checked,order:(Math.max(0,...list.map(x=>x.order))+1)}); }
+    Lloope.set('menu',list); closeModal(); renderMenuTable(); refreshBadges(); toast('Menú guardado');
+  };
+}
+
+/* ---------- PRODUCTOS ---------- */
+VIEWS.products=async(c)=>{
+  const apiOk=!!getApiUrl();
+  const warn=apiOk?'':[
+    '<div class="note warn">',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+    '<div>API no configurada. Ve a <a href="#" onclick="go(',"'",'integrations',"'",')" style="color:var(--wood);font-weight:700">Ajustes &rarr; Integraciones</a> para conectar lloope-api.</div>',
+    '</div>'
+  ].join('');
+  const migrateBtn=apiOk?'<button class="btn btn-ghost" id="pMigrate" style="margin-right:8px">Migrar productos locales</button>':'';
+  c.innerHTML=warn+'<div class="panel">'
+      +'<div class="panel-head"><div><h2>Catálogo de productos</h2><p class="lead" style="margin:0">Crea, edita, activa/desactiva y destaca productos.</p></div>'
+      +'<div style="display:flex">'+migrateBtn+'<button class="btn btn-wood" id="pAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Agregar producto</button></div></div>'
+      +'<div class="tbl-wrap"><table><thead><tr id="pHead"><th data-col="name" class="th-sort" onclick="setPSort(\'name\')">Producto</th><th>SKU</th><th data-col="cat" class="th-sort" onclick="setPSort(\'cat\')">Categoría</th><th data-col="price" class="th-sort" onclick="setPSort(\'price\')">Precio</th><th data-col="stock" class="th-sort" onclick="setPSort(\'stock\')">Stock</th><th>Estado</th><th style="text-align:right">Acciones</th></tr></thead>'
+      +'<tbody id="pBody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--coffee)">Cargando…</td></tr></tbody></table><div class="tbl-foot"><div class="pager" id="pPager"></div></div></div>'
+      +'</div>';
+  $('#pAdd').onclick=()=>editProduct(null);
+  if($('#pMigrate')) $('#pMigrate').onclick=migrateLocalProducts;
+  if(apiOk) await loadApiProducts();
+  else { _products=Lloope.get('products'); renderProductsTable(); }
+};
+async function migrateLocalProducts(){
+  const local=Lloope.get('products');
+  const existing=new Set(_products.map(p=>(p.name||'').trim().toLowerCase()));
+  const toMigrate=local.filter(p=>!existing.has((p.name||'').trim().toLowerCase()));
+  if(!toMigrate.length){ toast('No hay productos nuevos para migrar'); return; }
+  const n=toMigrate.length;
+  const cfm=await confirmModal('Migrar a la base de datos',[
+    '<div style="text-align:center;padding:1.5rem 0 .5rem">',
+    '<div style="width:60px;height:60px;background:var(--paper);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.1rem;border:2px solid var(--line)">',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="var(--wood)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg>',
+    '</div>',
+    '<p style="font-size:1.1rem;font-weight:700;color:var(--espresso);margin:0 0 .35rem">'+n+' producto'+(n!==1?'s':'')+'</p>',
+    '<p style="color:var(--coffee);margin:0;font-size:.9rem;line-height:1.5">Se copiarán de tu navegador a la base de datos.<br>Los que ya existen no se duplicarán.</p>',
+    '<div style="background:var(--paper);border-radius:var(--r-md);padding:.6rem .9rem;margin:1.1rem 0 0;display:flex;gap:.5rem;align-items:flex-start;text-align:left">',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="var(--wood)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+    '<span style="font-size:.82rem;color:var(--coffee)">Las imágenes en base64 también se migran; puede tardar unos segundos.</span>',
+    '</div></div>'
+  ].join(''));
+  if(!cfm) return;
+  let ok=0, fail=0, firstErr='';
+  for(const p of toMigrate){
+    const gallery=Array.isArray(p.gallery)?p.gallery:(p.gallery?[p.gallery]:[]);
+    const body={name:p.name,sku:p.sku||'',cat:p.cat||'',price:p.price||0,offer_price:p.offerPrice||0,stock:p.stock||0,
+      active:p.active??true,featured:p.featured??false,custom:p.custom??false,quote:p.quote??false,
+      desc_short:p.descShort||'',desc_long:p.descLong||'',measures:p.measures||'',material:p.material||'',
+      fab_time:p.fabTime||'',image:p.image||'img/logo-mark.png',gallery:gallery,faq:p.faq||[]};
+    const res=await apiFetch('/api/products',{method:'POST',body:JSON.stringify(body)});
+    if(res.error){ fail++; if(!firstErr){ firstErr=res.error; console.error('[migrate] '+p.name+': '+res.error); } } else ok++;
+  }
+  toast(ok+' migrado(s)'+(fail?', '+fail+' con error'+(firstErr?' ('+firstErr+')':''):''));
+  await loadApiProducts(); refreshBadges();
+}
+var _pSort='name',_pSortDir='asc',_pPage=1,_pPs=20;
+function setPSort(col){ if(_pSort===col)_pSortDir=_pSortDir==='asc'?'desc':'asc'; else{_pSort=col;_pSortDir='asc';} _pPage=1; renderProductsTable(); }
+function goProductPage(n){ _pPage=n; renderProductsTable(); }
+function setPPs(n){ _pPs=n; _pPage=1; renderProductsTable(); }
+function renderProductsTable(){
+  const el=$('#pBody'); if(!el) return;
+  const getV=(p,c)=>c==='name'?p.name||'':c==='cat'?p.cat||'':c==='price'?(p.offerPrice||p.price||0):c==='stock'?(p.stock||0):'';
+  const sorted=sortRows(_products,_pSort,_pSortDir,getV);
+  const page=pageSlice(sorted,_pPage,_pPs);
+  el.innerHTML=page.map(p=>{
+    const price=p.quote?'A cotizar':(p.offerPrice>0?('<b>'+CLP(p.offerPrice)+'</b> <s style="color:var(--coffee);font-size:.8em">'+CLP(p.price)+'</s>'):CLP(p.price));
+    const stockB=p.quote?'<span class="t-sub">—</span>':(Number(p.stock)<=0?'<span class="badge2 b-danger">Sin stock</span>':('<b>'+p.stock+'</b>'));
+    const featBadge=p.featured?'<span class="badge2 b-warn" style="margin-left:4px">★ Destacado</span>':'';
+    return '<tr>'
+      +'<td><div style="display:flex;align-items:center;gap:10px"><img class="t-img" src="'+escAttr(p.image)+'" alt=""><div><div class="t-name">'+esc(p.name)+' '+featBadge+'</div><div class="t-sub">'+(p.custom?'Personalizable':'Estándar')+'</div></div></div></td>'
+      +'<td class="t-sub">'+esc(p.sku||'—')+'</td>'
+      +'<td>'+esc(p.cat)+'</td>'
+      +'<td>'+price+'</td>'
+      +'<td>'+stockB+'</td>'
+      +'<td>'+badge(p.active)+'</td>'
+      +'<td><div class="row-actions" style="justify-content:flex-end">'
+        +'<button class="iconbtn star '+(p.featured?'on':'')+'" onclick="toggleFeatured('+p.id+')" title="Destacar">'+IC.star+'</button>'
+        +'<button class="iconbtn" onclick="toggleActive('+p.id+')" title="Activar/desactivar">'+(p.active?IC.eye:IC.eyeoff)+'</button>'
+        +'<button class="iconbtn edit" onclick="editProduct('+p.id+')">'+IC.edit+'</button>'
+        +'<button class="iconbtn del" onclick="delProduct('+p.id+')">'+IC.del+'</button>'
+      +'</div></td>'
+    +'</tr>';
+  }).join('')||'<tr><td colspan="7" class="empty-row">Sin productos</td></tr>';
+  renderPager('pPager',sorted.length,_pPage,'goProductPage',_pPs,'setPPs');
+  updateSortHead('pHead',_pSort,_pSortDir);
+}
+async function toggleFeatured(id){
+  const p=_products.find(x=>x.id===id); if(!p)return;
+  const res=await apiFetch('/api/products/'+id,{method:'PUT',body:JSON.stringify({featured:!p.featured})});
+  if(res.error){toast('Error: '+res.error);return;}
+  p.featured=!p.featured; renderProductsTable();
+}
+async function toggleActive(id){
+  const p=_products.find(x=>x.id===id); if(!p)return;
+  const res=await apiFetch('/api/products/'+id,{method:'PUT',body:JSON.stringify({active:!p.active})});
+  if(res.error){toast('Error: '+res.error);return;}
+  p.active=!p.active; renderProductsTable(); refreshBadges(); toast(p.active?'Producto activado':'Producto desactivado');
+}
+async function delProduct(id){
+  if(!await deleteConfirm('El producto se eliminará permanentemente del catálogo.'))return;
+  const res=await apiFetch('/api/products/'+id,{method:'DELETE'});
+  if(res.error){toast('Error: '+res.error);return;}
+  _products=_products.filter(x=>x.id!==id); renderProductsTable(); refreshBadges(); toast('Producto eliminado');
+}
+function editProduct(id){
+  const cats=_categories.length?_categories:Lloope.get('categories');
+  const p=id?_products.find(x=>x.id===id):{name:'',sku:'',cat:(cats[0]&&cats[0].name)||'',price:0,offerPrice:0,stock:0,active:true,featured:false,custom:false,quote:false,descShort:'',descLong:'',measures:'',material:'',fabTime:'',image:'',gallery:[],faq:[]};
+  if(!p){toast('Producto no encontrado');return;}
+  const catOpts=cats.map(x=>'<option '+(x.name===p.cat?'selected':'')+'>'+esc(x.name)+'</option>').join('');
+  const body=[
+    '<div class="grid-2">',
+    '<div class="field"><label>Nombre del producto *</label><input type="text" id="p_name" value="'+escAttr(p.name)+'"></div>',
+    '<div class="field"><label>SKU / código interno</label><input type="text" id="p_sku" value="'+escAttr(p.sku)+'"></div>',
+    '</div>',
+    '<div class="grid-3">',
+    '<div class="field"><label>Categoría</label><select id="p_cat">'+catOpts+'</select></div>',
+    '<div class="field"><label>Precio (CLP)</label><input type="number" id="p_price" value="'+p.price+'"></div>',
+    '<div class="field"><label>Precio oferta <span class="hint">(0 = sin oferta)</span></label><input type="number" id="p_offer" value="'+(p.offerPrice||0)+'"></div>',
+    '</div>',
+    '<div class="grid-3">',
+    '<div class="field"><label>Stock</label><input type="number" id="p_stock" value="'+p.stock+'"></div>',
+    '<div class="field"><label>Medidas</label><input type="text" id="p_measures" value="'+escAttr(p.measures)+'" placeholder="45 × 25 cm"></div>',
+    '<div class="field"><label>Material / madera</label><input type="text" id="p_material" value="'+escAttr(p.material)+'"></div>',
+    '</div>',
+    '<div class="field"><label>Tiempo estimado de fabricación</label><input type="text" id="p_fab" value="'+escAttr(p.fabTime)+'" placeholder="5 a 7 días"></div>',
+    '<div class="field"><label>Descripción corta <span class="hint">(se ve en la tarjeta)</span></label><textarea id="p_short">'+esc(p.descShort)+'</textarea></div>',
+    '<div class="field"><label>Descripción larga</label><textarea id="p_long">'+esc(p.descLong)+'</textarea></div>',
+    '<div class="grid-3" style="align-items:end">',
+    sw('p_active','Producto activo',p.active),
+    sw('p_feat','Destacado',p.featured),
+    sw('p_custom','Personalizable',p.custom),
+    '</div>',
+    sw('p_quote','Producto "a cotizar" (sin precio fijo)',p.quote),
+    '<div class="divider"></div>',
+    '<div class="field"><label>Imagen principal</label>',
+    '<img class="thumb sm" id="p_img_prev" src="'+escAttr(p.image)+'"><div style="height:8px"></div>',
+    '<input type="text" id="p_img" value="'+escAttr(p.image)+'" placeholder="img/... o URL">',
+    '<div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="p_img_file"></div>',
+    '</div>',
+    '<div class="field"><label>Galería de imágenes <span class="hint">(opcional)</span></label>',
+    '<div class="gal-grid" id="p_gal"></div>',
+    '<div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="p_gal_file" multiple></div>',
+    '</div>',
+    '<div class="divider"></div>',
+    '<div class="field"><label>Preguntas frecuentes del producto <span class="hint">(opcional — aparecen en la ficha)</span></label>',
+    '<div id="p_faq_list"></div>',
+    '<button type="button" id="p_faq_add" class="btn btn-ghost" style="margin-top:8px;font-size:.84rem;padding:.45em 1.1em">+ Agregar pregunta</button>',
+    '</div>'
+  ].join('');
+  openModal(id?'Editar producto':'Nuevo producto', body,
+    '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-wood" id="p_ok">Guardar producto</button>');
+
+  setTimeout(()=>{
+    const fo=Lloope.get('fieldOptions')||{};
+    createCombobox($('#p_material'), fo.material||[]);
+    createCombobox($('#p_measures'), fo.measures||[]);
+    createCombobox($('#p_fab'),      fo.fabTime||[]);
+  },0);
+
+  let gallery=[...(p.gallery||[])];
+  const renderGal=()=>{ $('#p_gal').innerHTML=gallery.map((g,i)=>'<div class="gal-item"><img src="'+escAttr(g)+'"><button class="rm" type="button" data-i="'+i+'">'+IC.del+'</button></div>').join('')||'<span class="t-sub">Sin imágenes en galería</span>'; };
+  renderGal();
+  $('#p_gal').addEventListener('click', e=>{
+    const btn=e.target.closest('.rm'); if(!btn) return;
+    gallery.splice(Number(btn.dataset.i),1); renderGal();
+  });
+  bindFilePreview('p_img_file','p_img','p_img_prev');
+  $('#p_img').oninput=e=>$('#p_img_prev').src=e.target.value;
+  $('#p_gal_file').onchange=e=>{ [...e.target.files].forEach(f=>fileToBase64(f,b64=>{ gallery.push(b64); renderGal(); })); };
+
+  let faqItems=[...(p.faq||[])];
+  const renderFaq=()=>{
+    const box=$('#p_faq_list');
+    if(!faqItems.length){ box.innerHTML='<span class="t-sub">Sin preguntas personalizadas — las generales se muestran automáticamente</span>'; return; }
+    box.innerHTML=faqItems.map((f,i)=>
+      '<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
+          '<span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--coffee)">Pregunta '+(i+1)+'</span>'+
+          '<button type="button" class="iconbtn del" data-fqi="'+i+'">'+IC.del+'</button>'+
+        '</div>'+
+        '<div class="field" style="margin-bottom:6px"><label style="font-size:.75rem">Pregunta</label><input type="text" class="faq-q" data-fqi="'+i+'" value="'+escAttr(f.q||'')+'"></div>'+
+        '<div class="field" style="margin-bottom:0"><label style="font-size:.75rem">Respuesta</label><textarea class="faq-a" data-fqi="'+i+'">'+esc(f.a||'')+'</textarea></div>'+
+      '</div>'
+    ).join('');
+    box.querySelectorAll('.faq-q').forEach(el=>{ el.oninput=()=>{ faqItems[+el.dataset.fqi].q=el.value; }; });
+    box.querySelectorAll('.faq-a').forEach(el=>{ el.oninput=()=>{ faqItems[+el.dataset.fqi].a=el.value; }; });
+    box.querySelectorAll('.iconbtn.del').forEach(btn=>{ btn.onclick=()=>{ faqItems.splice(+btn.dataset.fqi,1); renderFaq(); }; });
+  };
+  renderFaq();
+  $('#p_faq_add').onclick=()=>{ faqItems.push({q:'',a:''}); renderFaq(); const qs=document.querySelectorAll('#p_faq_list .faq-q'); if(qs.length) qs[qs.length-1].focus(); };
+
+  $('#p_ok').onclick=async()=>{
+    const name=$('#p_name').value.trim(); if(!name){toast('El nombre es obligatorio','warn');return;}
+    const btn=$('#p_ok'); btn.disabled=true; btn.textContent='Guardando…';
+    const data={name,sku:$('#p_sku').value.trim(),cat:$('#p_cat').value,
+      price:+$('#p_price').value||0,offer_price:+$('#p_offer').value||0,stock:+$('#p_stock').value||0,
+      active:$('#p_active').checked,featured:$('#p_feat').checked,custom:$('#p_custom').checked,quote:$('#p_quote').checked,
+      desc_short:$('#p_short').value,desc_long:$('#p_long').value,measures:$('#p_measures').value,
+      material:$('#p_material').value,fab_time:$('#p_fab').value,
+      image:$('#p_img').value||'img/logo-mark.png',gallery,
+      faq:faqItems.filter(f=>(f.q||'').trim()||(f.a||'').trim())};
+    const res=id
+      ? await apiFetch('/api/products/'+id,{method:'PUT',body:JSON.stringify(data)})
+      : await apiFetch('/api/products',{method:'POST',body:JSON.stringify(data)});
+    if(res.error){toast('Error: '+res.error);btn.disabled=false;btn.textContent='Guardar producto';return;}
+    closeModal(); await loadApiProducts(); refreshBadges(); toast(id?'Producto actualizado':'Producto creado');
+  };
+}
+
+/* ---------- CATEGORÍAS ---------- */
+VIEWS.categories=async(c)=>{
+  const apiOk=!!getApiUrl();
+  const warn=apiOk?'':'<div class="note warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/><\/svg><div>API no configurada. Ve a <a href="#" onclick="go(\'integrations\')" style="color:var(--wood);font-weight:700">Ajustes → Integraciones<\/a>.<\/div><\/div>';
+  const migrateBtn=apiOk?'<button class="btn btn-ghost" id="cMigrate" style="margin-right:8px">Migrar categorías locales</button>':'';
+  c.innerHTML=warn+`<div class="panel">
+      <div class="panel-head"><div><h2>Categorías</h2><p class="lead" style="margin:0">Organiza el catálogo. El orden y las categorías activas se reflejan en la tienda.</p></div>
+      <div style="display:flex">`+migrateBtn+`<button class="btn btn-wood" id="cAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/><\/svg> Nueva categoría</button></div></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Orden</th><th>Categoría</th><th>Productos</th><th>Estado</th><th style="text-align:right">Acciones</th></tr></thead>
+      <tbody id="cBody"><tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--coffee)">Cargando…</td></tr></tbody></table></div>
+    </div>`;
+  $('#cAdd').onclick=()=>editCat(null);
+  if($('#cMigrate')) $('#cMigrate').onclick=migrateLocalCategories;
+  if(apiOk) await loadApiCategories();
+  else { _categories=Lloope.get('categories'); renderCatsTable(); }
+};
+async function migrateLocalCategories(){
+  const local=Lloope.get('categories');
+  const existing=new Set(_categories.map(c=>(c.name||'').trim().toLowerCase()));
+  const toMigrate=local.filter(c=>!existing.has((c.name||'').trim().toLowerCase()));
+  if(!toMigrate.length){ toast('No hay categorías nuevas para migrar'); return; }
+  const nc=toMigrate.length;
+  const cfmc=await confirmModal('Migrar a la base de datos',[
+    '<div style="text-align:center;padding:1.5rem 0 .5rem">',
+    '<div style="width:60px;height:60px;background:var(--paper);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.1rem;border:2px solid var(--line)">',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="var(--wood)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg>',
+    '</div>',
+    '<p style="font-size:1.1rem;font-weight:700;color:var(--espresso);margin:0 0 .35rem">'+nc+' categor'+(nc!==1?'ias':'ia')+'</p>',
+    '<p style="color:var(--coffee);margin:0;font-size:.9rem;line-height:1.5">Se copiarán de tu navegador a la base de datos.<br>Las que ya existen no se duplicarán.</p>',
+    '</div>'
+  ].join(''));
+  if(!cfmc) return;
+  let ok=0, fail=0, firstErr='';
+  for(const cat of toMigrate){
+    const res=await apiFetch('/api/categories',{method:'POST',body:JSON.stringify({name:cat.name,image:cat.image||'',active:cat.active??true,ord:cat.order||0})});
+    if(res.error){ fail++; if(!firstErr){ firstErr=res.error; console.error('[migrate-cat] '+cat.name+': '+res.error); } } else ok++;
+  }
+  toast(ok+' migrada(s)'+(fail?', '+fail+' con error'+(firstErr?' ('+firstErr+')':''):''));
+  await loadApiCategories();
+}
+function renderCatsTable(){
+  const el=$('#cBody'); if(!el) return;
+  const sorted=[..._categories].sort((a,b)=>a.order-b.order);
+  el.innerHTML=sorted.map((c,i)=>{
+    const count=_products.filter(p=>p.cat===c.name).length;
+    return `<tr>
+      <td><div class="row-actions"><button class="iconbtn" ${i===0?'disabled style=opacity:.3':''} onclick="moveCat(${c.id},-1)">${IC.up}</button><button class="iconbtn" ${i===sorted.length-1?'disabled style=opacity:.3':''} onclick="moveCat(${c.id},1)">${IC.down}</button></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><img class="t-img" src="${escAttr(c.image)}" alt=""><span class="t-name">${esc(c.name)}</span></div></td>
+      <td><b>${count}</b> productos</td>
+      <td>${badge(c.active)}</td>
+      <td><div class="row-actions" style="justify-content:flex-end">
+        <button class="iconbtn" onclick="toggleCat(${c.id})">${c.active?IC.eye:IC.eyeoff}</button>
+        <button class="iconbtn edit" onclick="editCat(${c.id})">${IC.edit}</button>
+        <button class="iconbtn del" onclick="delCat(${c.id})">${IC.del}</button>
+      </div></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="5" class="empty-row">Sin categorías</td></tr>';
+}
+async function moveCat(id,dir){
+  const sorted=[..._categories].sort((a,b)=>a.order-b.order);
+  const i=sorted.findIndex(x=>x.id===id),j=i+dir;
+  if(j<0||j>=sorted.length)return;
+  const [a,b]=[sorted[i],sorted[j]];
+  const [ordA,ordB]=[a.order,b.order];
+  await Promise.all([
+    apiFetch('/api/categories/'+a.id,{method:'PUT',body:JSON.stringify({ord:ordB})}),
+    apiFetch('/api/categories/'+b.id,{method:'PUT',body:JSON.stringify({ord:ordA})})
+  ]);
+  a.order=ordB; b.order=ordA; renderCatsTable();
+}
+async function toggleCat(id){
+  const c=_categories.find(x=>x.id===id); if(!c)return;
+  const res=await apiFetch('/api/categories/'+id,{method:'PUT',body:JSON.stringify({active:!c.active})});
+  if(res.error){toast('Error: '+res.error);return;}
+  c.active=!c.active; renderCatsTable();
+}
+async function delCat(id){
+  if(!await deleteConfirm('Los productos asociados a esta categoría seguirán existiendo.'))return;
+  const res=await apiFetch('/api/categories/'+id,{method:'DELETE'});
+  if(res.error){toast('Error: '+res.error);return;}
+  _categories=_categories.filter(x=>x.id!==id); renderCatsTable(); toast('Categoría eliminada');
+}
+function editCat(id){
+  const c=id?_categories.find(x=>x.id===id):{name:'',image:'',active:true};
+  if(!c){toast('Categoría no encontrada');return;}
+  openModal(id?'Editar categoría':'Nueva categoría',`
+    <div class="field"><label>Nombre *</label><input type="text" id="c_name" value="${escAttr(c.name)}" placeholder="Ej: Tablas personalizadas"></div>
+    <div class="field"><label>Imagen de la categoría</label>
+      <img class="thumb" id="c_img_prev" src="${escAttr(c.image)}"><div style="height:8px"></div>
+      <input type="text" id="c_img" value="${escAttr(c.image)}" placeholder="img/... o URL">
+      <div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="c_img_file"></div>
+    </div>
+    ${sw('c_active','Categoría activa',c.active)}`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-wood" id="c_ok">Guardar</button>`);
+  bindFilePreview('c_img_file','c_img','c_img_prev');
+  $('#c_img').oninput=e=>$('#c_img_prev').src=e.target.value;
+  $('#c_ok').onclick=async()=>{
+    const name=$('#c_name').value.trim(); if(!name){toast('El nombre es obligatorio','warn');return;}
+    const btn=$('#c_ok'); btn.disabled=true; btn.textContent='Guardando…';
+    const maxOrd=_categories.length?Math.max(..._categories.map(x=>x.order))+1:0;
+    const body=id
+      ?{name,image:$('#c_img').value,active:$('#c_active').checked}
+      :{name,image:$('#c_img').value||'img/logo-mark.png',active:$('#c_active').checked,ord:maxOrd};
+    const res=id
+      ?await apiFetch('/api/categories/'+id,{method:'PUT',body:JSON.stringify(body)})
+      :await apiFetch('/api/categories',{method:'POST',body:JSON.stringify(body)});
+    if(res.error){toast('Error: '+res.error);btn.disabled=false;btn.textContent='Guardar';return;}
+    closeModal(); await loadApiCategories(); toast('Categoría guardada');
+  };
+}
+
+/* ---------- IMÁGENES ---------- */
+VIEWS.images=(c)=>{
+  const im=Lloope.get('images');
+  c.innerHTML=`
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>Formatos recomendados: <b>JPG, PNG o WebP</b>. En este mockup las imágenes se guardan como base64 en el navegador (localStorage). <b>En producción</b> deben subirse a un servicio externo como <b>Cloudinary, Amazon S3</b> o el almacenamiento propio del servidor, nunca en el navegador.</div></div>
+    <div class="dash-2">
+      <div class="panel">
+        <h2>Logo</h2><p class="lead">Se muestra en el header, footer y favicon.</p>
+        <img class="thumb sm" id="im_logo_prev" src="${escAttr(im.logo)}" style="background:var(--espresso);padding:10px">
+        <div class="uploader" style="margin-top:10px"><input type="file" accept="image/*" id="im_logo_file"></div>
+        <input type="text" id="im_logo" value="${escAttr(im.logo)}" style="margin-top:8px;width:100%;padding:.6em .8em;border-radius:10px;border:1.5px solid var(--line)">
+      </div>
+      <div class="panel">
+        <h2>Imagen del Hero</h2><p class="lead">Imagen principal del inicio.</p>
+        <img class="thumb" id="im_hero_prev" src="${escAttr(im.hero)}">
+        <div class="uploader" style="margin-top:10px"><input type="file" accept="image/*" id="im_hero_file"></div>
+        <input type="text" id="im_hero" value="${escAttr(im.hero)}" style="margin-top:8px;width:100%;padding:.6em .8em;border-radius:10px;border:1.5px solid var(--line)">
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Galería del sitio</h2><label class="btn btn-wood" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Agregar imágenes<input type="file" accept="image/*" id="im_gal_file" multiple hidden></label></div>
+      <div class="gal-grid" id="im_gal"></div>
+    </div>
+    <div class="panel">
+      <h2>Cambiar imagen de un producto</h2><p class="lead">Actualiza rápidamente la foto principal de un producto del catálogo.</p>
+      <div class="grid-2">
+        <div class="field"><label>Producto</label><select id="im_prod">${(_products.length?_products:Lloope.get('products')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div>
+        <div class="field"><label>Nueva imagen</label><div class="uploader"><input type="file" accept="image/*" id="im_prod_file"></div></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-ghost" id="im_save_all">Guardar logo y hero</button></div>
+    </div>`;
+  setupUploaders();
+  bindFilePreview('im_logo_file','im_logo','im_logo_prev');
+  bindFilePreview('im_hero_file','im_hero','im_hero_prev');
+  $('#im_logo').oninput=e=>$('#im_logo_prev').src=e.target.value;
+  $('#im_hero').oninput=e=>$('#im_hero_prev').src=e.target.value;
+
+  const renderGal=()=>{ const g=Lloope.get('images').gallery||[];
+    $('#im_gal').innerHTML=g.map(x=>`<div class="gal-item"><img src="${escAttr(x.src)}" alt=""><button class="rm" onclick="delGalImg(${x.id})">${IC.del}</button></div>`).join('')||'<span class="t-sub">Galería vacía</span>'; };
+  renderGal();
+  window.delGalImg=(gid)=>{ const im2=Lloope.get('images'); im2.gallery=im2.gallery.filter(x=>x.id!==gid); Lloope.set('images',im2); renderGal(); toast('Imagen eliminada'); };
+  $('#im_gal_file').onchange=e=>{ const im2=Lloope.get('images'); [...e.target.files].forEach(f=>fileToBase64(f,b64=>{ im2.gallery.push({id:Lloope.nextId(im2.gallery),src:b64,alt:'Producto Lloope'}); Lloope.set('images',im2); renderGal(); })); toast('Imagen(es) agregada(s)'); };
+
+  $('#im_prod_file').onchange=e=>{ const f=e.target.files[0]; if(!f)return; fileToBase64(f,async b64=>{ const pid=+$('#im_prod').value; const res=await apiFetch('/api/products/'+pid,{method:'PUT',body:JSON.stringify({image:b64})}); if(res.error){toast('Error: '+res.error);return;} const p=_products.find(x=>x.id===pid); if(p) p.image=b64; toast('Imagen del producto actualizada'); }); };
+  $('#im_save_all').onclick=()=>{ const im2=Lloope.get('images'); im2.logo=$('#im_logo').value; im2.hero=$('#im_hero').value; if(Lloope.set('images',im2)){ const s=Lloope.get('settings'); s.logo=im2.logo; Lloope.set('settings',s); toast('Logo y hero guardados'); } };
+};
+
+/* ---------- CONTACTO ---------- */
+VIEWS.contact=(c)=>{
+  const k=Lloope.get('contact');
+  c.innerHTML=`
+    <div class="panel">
+      <h2>Datos de contacto</h2><p class="lead">Se muestran en la sección de contacto, el footer y los botones de WhatsApp de la tienda.</p>
+      <div class="grid-2">
+        <div class="field"><label>Nombre del emprendimiento</label><input type="text" id="k_biz" value="${escAttr(k.businessName)}"></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="k_phone" value="${escAttr(k.phone)}"></div>
+        <div class="field"><label>WhatsApp <span class="hint">(solo números, con código país)</span></label><input type="text" id="k_wa" value="${escAttr(k.whatsapp)}" placeholder="56912345678"></div>
+        <div class="field"><label>Correo electrónico</label><input type="email" id="k_email" value="${escAttr(k.email)}"></div>
+        <div class="field"><label>Instagram <span class="hint">(usuario)</span></label><input type="text" id="k_ig" value="${escAttr(k.instagram)}"></div>
+        <div class="field"><label>TikTok</label><input type="text" id="k_tt" value="${escAttr(k.tiktok)}"></div>
+        <div class="field"><label>Facebook</label><input type="text" id="k_fb" value="${escAttr(k.facebook)}"></div>
+        <div class="field"><label>Ciudad / región</label><input type="text" id="k_city" value="${escAttr(k.city)}"></div>
+        <div class="field"><label>Dirección <span class="hint">(si aplica)</span></label><input type="text" id="k_addr" value="${escAttr(k.address)}"></div>
+        <div class="field"><label>Horario de atención</label><input type="text" id="k_hours" value="${escAttr(k.hours)}"></div>
+      </div>
+      <div class="field"><label>Mensaje automático para WhatsApp <span class="hint">(encabezado del pedido)</span></label><input type="text" id="k_wamsg" value="${escAttr(k.waMessage)}"></div>
+      <div class="field"><label>Texto de la sección Contacto</label><textarea id="k_text">${esc(k.contactText)}</textarea></div>
+      <div class="form-actions"><button class="btn btn-wood" id="k_save">Guardar contacto</button></div>
+    </div>`;
+  $('#k_save').onclick=()=>{
+    save('contact',{ businessName:$('#k_biz').value, phone:$('#k_phone').value, whatsapp:$('#k_wa').value.replace(/\D/g,''),
+      email:$('#k_email').value, instagram:$('#k_ig').value.replace('@',''), tiktok:$('#k_tt').value, facebook:$('#k_fb').value,
+      city:$('#k_city').value, address:$('#k_addr').value, hours:$('#k_hours').value,
+      waMessage:$('#k_wamsg').value, contactText:$('#k_text').value },'Contacto actualizado');
+  };
+};
+
+/* ---------- CARRITO ---------- */
+VIEWS.cart=(c)=>{
+  const k=Lloope.get('cart');
+  c.innerHTML=`
+    <div class="panel">
+      <h2>Configuración del carrito</h2><p class="lead">Controla cómo funciona el carrito y el checkout en la tienda.</p>
+      ${sw('ct_en','Carrito activado',k.enabled)}
+      <div class="grid-3">
+        <div class="field"><label>Moneda</label><input type="text" id="ct_cur" value="${escAttr(k.currency)}"></div>
+        <div class="field"><label>Compra mínima (CLP)</label><input type="number" id="ct_min" value="${k.minPurchase}"></div>
+        <div class="field"><label>Costo de despacho (CLP)</label><input type="number" id="ct_ship" value="${k.shippingCost}"></div>
+      </div>
+      <div class="divider"></div>
+      <h3 style="font-size:1.05rem;margin-bottom:.6rem">Opciones de entrega</h3>
+      ${sw('ct_pick','Retiro en taller',k.pickup)}
+      ${sw('ct_home','Envío a domicilio',k.homeDelivery)}
+      ${sw('ct_bypay','Envío por pagar',k.shippingByPayer)}
+      <div class="divider"></div>
+      <h3 style="font-size:1.05rem;margin-bottom:.6rem">Checkout</h3>
+      ${sw('ct_wa','Compra por WhatsApp',k.whatsappCheckout)}
+      ${sw('ct_on','Pago online',k.onlinePay)}
+      ${sw('ct_inv','Permitir solicitar factura (además de boleta)',k.allowInvoice)}
+      <div class="note" style="margin-top:.8rem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div>Si activas esto, en <b>cart.html</b> el cliente puede elegir Boleta o Factura e ingresar RUT/razón social/giro. Estos datos solo se recopilan y se incluyen en el mensaje de WhatsApp — el sitio <b>no emite</b> el documento tributario electrónico; eso lo generas tú (o tu sistema de facturación) manualmente.</div></div>
+      <div class="field" style="margin-top:1rem"><label>Mensaje al finalizar la compra</label><textarea id="ct_fin">${esc(k.finishMessage)}</textarea></div>
+    </div>
+    <div class="panel">
+      <h2>Textos de los botones</h2>
+      <div class="grid-2">
+        <div class="field"><label>“Agregar al carrito”</label><input type="text" id="ct_b1" value="${escAttr(k.btnAddToCart)}"></div>
+        <div class="field"><label>“Ver carrito”</label><input type="text" id="ct_b2" value="${escAttr(k.btnViewCart)}"></div>
+        <div class="field"><label>“Finalizar compra”</label><input type="text" id="ct_b3" value="${escAttr(k.btnCheckout)}"></div>
+        <div class="field"><label>“Enviar pedido por WhatsApp”</label><input type="text" id="ct_b4" value="${escAttr(k.btnWhatsapp)}"></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-wood" id="ct_save">Guardar configuración</button></div>
+    </div>`;
+  $('#ct_save').onclick=()=>{
+    save('cart',{ enabled:$('#ct_en').checked, currency:$('#ct_cur').value||'CLP', minPurchase:+$('#ct_min').value||0, shippingCost:+$('#ct_ship').value||0,
+      pickup:$('#ct_pick').checked, homeDelivery:$('#ct_home').checked, shippingByPayer:$('#ct_bypay').checked,
+      finishMessage:$('#ct_fin').value, whatsappCheckout:$('#ct_wa').checked, onlinePay:$('#ct_on').checked, allowInvoice:$('#ct_inv').checked,
+      btnAddToCart:$('#ct_b1').value, btnViewCart:$('#ct_b2').value, btnCheckout:$('#ct_b3').value, btnWhatsapp:$('#ct_b4').value },'Carrito actualizado');
+  };
+};
+
+/* ---------- PAGOS ---------- */
+VIEWS.payment=(c)=>{
+  const k=Lloope.get('payment');
+  const method=(id,name,desc,on)=>`<div class="pay-method"><div class="pm-x"><div class="pm-ic">${name.slice(0,2).toUpperCase()}</div><div><b>${name}</b><div class="t-sub">${desc}</div></div></div>
+    <label class="switch"><input type="checkbox" id="${id}" ${on?'checked':''}><span class="track"></span></label></div>`;
+  c.innerHTML=`
+    <div class="note red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+      <div><b>Advertencia de seguridad.</b> Este panel es solo visual. <b>Nunca</b> se piden ni almacenan números de tarjeta, CVV ni fecha de vencimiento: los pagos con tarjeta se procesan mediante un proveedor externo. Las llaves privadas <b>no deben exponerse</b> en el frontend; la integración real debe hacerse desde el <b>backend</b> con validación de pagos del lado del servidor.</div></div>
+    <div class="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div><b>Efecto en la tienda:</b> si ningún medio de pago está activo (o el carrito está desactivado en la sección "Carrito"), el carrito se oculta automáticamente para los visitantes y cada producto muestra un botón para "Consultar por WhatsApp" en su lugar, junto a un aviso de que las compras online estarán disponibles pronto.</div>
+    </div>
+    <div class="panel">
+      <h2>Medios de pago</h2><p class="lead">Activa o desactiva los medios que quieres ofrecer.</p>
+      ${method('pm_transfer','Transferencia bancaria','Pago por transferencia y envío de comprobante',k.methods.transfer)}
+      ${method('pm_whatsapp','Pago por WhatsApp','Coordinar el pago directamente por chat',k.methods.whatsapp)}
+      ${method('pm_webpay','Webpay','Tarjetas de crédito y débito (Transbank)',k.methods.webpay)}
+      ${method('pm_mercadopago','Mercado Pago','Tarjetas, saldo y cuotas',k.methods.mercadopago)}
+      ${method('pm_flow','Flow','Múltiples medios de pago',k.methods.flow)}
+      ${method('pm_other','Otro proveedor','Integración personalizada',k.methods.other)}
+    </div>
+    <div class="panel">
+      <h2>Transferencia bancaria</h2><p class="lead">Datos que verá el cliente para transferir.</p>
+      <div class="grid-2">
+        <div class="field"><label>Banco</label><input type="text" id="tr_bank" value="${escAttr(k.transfer.bank)}"></div>
+        <div class="field"><label>Tipo de cuenta</label><input type="text" id="tr_type" value="${escAttr(k.transfer.accountType)}"></div>
+        <div class="field"><label>Número de cuenta</label><input type="text" id="tr_num" value="${escAttr(k.transfer.accountNumber)}"></div>
+        <div class="field"><label>Nombre titular</label><input type="text" id="tr_holder" value="${escAttr(k.transfer.holder)}"></div>
+        <div class="field"><label>RUT titular</label><input type="text" id="tr_rut" value="${escAttr(k.transfer.rut)}"></div>
+        <div class="field"><label>Correo para comprobante</label><input type="email" id="tr_email" value="${escAttr(k.transfer.email)}"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Pago online (campos simulados)</h2><p class="lead">Configuración de referencia. En producción estas llaves viven en variables de entorno del backend.</p>
+      <div class="grid-2">
+        <div class="field"><label>Proveedor de pago</label><input type="text" id="on_prov" value="${escAttr(k.online.provider)}"></div>
+        <div class="field"><label>Modo</label><select id="on_mode"><option ${k.online.mode==='test'?'selected':''}>test</option><option ${k.online.mode==='production'?'selected':''}>production</option></select></div>
+        <div class="field"><label>Public key</label><input type="text" id="on_pub" value="${escAttr(k.online.publicKey)}" placeholder="pk_..."></div>
+        <div class="field"><label>Secret key <span class="hint">(no exponer en real)</span></label><input type="password" id="on_sec" value="${escAttr(k.online.secretKey)}" placeholder="sk_..."></div>
+        <div class="field"><label>Código de comercio</label><input type="text" id="on_com" value="${escAttr(k.online.commerceCode)}"></div>
+        <div class="field"><label>Estado</label><select id="on_active"><option value="true" ${k.online.active?'selected':''}>Activo</option><option value="false" ${!k.online.active?'selected':''}>Inactivo</option></select></div>
+        <div class="field"><label>URL de retorno</label><input type="url" id="on_ret" value="${escAttr(k.online.returnUrl)}" placeholder="https://..."></div>
+        <div class="field"><label>URL de confirmación</label><input type="url" id="on_conf" value="${escAttr(k.online.confirmUrl)}" placeholder="https://..."></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="pay_test"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Probar configuración</button>
+        <button class="btn btn-wood" id="pay_save">Guardar pagos</button>
+      </div>
+    </div>`;
+  $('#pay_test').onclick=()=>{ toast('✔ Configuración simulada correcta (modo '+$('#on_mode').value+'). En producción se valida contra el proveedor.'); };
+  $('#pay_save').onclick=()=>{
+    save('payment',{
+      methods:{ transfer:$('#pm_transfer').checked, whatsapp:$('#pm_whatsapp').checked, webpay:$('#pm_webpay').checked, mercadopago:$('#pm_mercadopago').checked, flow:$('#pm_flow').checked, other:$('#pm_other').checked },
+      transfer:{ bank:$('#tr_bank').value, accountType:$('#tr_type').value, accountNumber:$('#tr_num').value, holder:$('#tr_holder').value, rut:$('#tr_rut').value, email:$('#tr_email').value },
+      online:{ provider:$('#on_prov').value, mode:$('#on_mode').value, publicKey:$('#on_pub').value, secretKey:$('#on_sec').value, commerceCode:$('#on_com').value, returnUrl:$('#on_ret').value, confirmUrl:$('#on_conf').value, active:$('#on_active').value==='true' }
+    },'Pagos actualizados');
+  };
+};
+
+/* ---------- PEDIDOS ---------- */
+const ORDER_STATES=Lloope.ORDER_STATES;
+function orderBadge(s){ return `<span class="badge2 ${Lloope.orderStatusBadgeClass(s)}">${esc(s)}</span>`; }
+let ordersCache=[]; // último resultado de allOrders(), para no re-consultar en cada acción de fila
+
+VIEWS.orders=(c)=>{
+  c.innerHTML=`
+    ${Lloope.auth.isConfigured() ? '' : `
+    <div class="note red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>Backend no configurado: no hay pedidos reales que mostrar todavía. Conéctalo en <b>Ajustes → Integraciones</b>. <a href="#" onclick="go('integrations');return false" style="text-decoration:underline;color:inherit">Ir ahora</a>.</div></div>`}
+    <div class="panel">
+      <div class="panel-head"><div><h2>Pedidos</h2><p class="lead" style="margin:0">Pedidos creados por clientes con cuenta al finalizar su compra. Cambia el estado o contacta al cliente por WhatsApp.</p></div></div>
+      <div class="tbl-wrap"><table><thead><tr id="oHead"><th data-col="created_at" class="th-sort desc" onclick="setOSort('created_at')">Pedido</th><th data-col="customer" class="th-sort" onclick="setOSort('customer')">Cliente</th><th data-col="total" class="th-sort" onclick="setOSort('total')">Total</th><th>Pago</th><th>Estado</th><th style="text-align:right">Acciones</th></tr></thead>
+      <tbody id="oBody"><tr><td colspan="6" class="empty-row">Cargando…</td></tr></tbody></table><div class="tbl-foot"><div class="pager" id="oPager"></div></div></div>
+    </div>`;
+  renderOrders();
+};
+var _oSort='created_at',_oSortDir='desc',_oPage=1,_oPs=20;
+function setOSort(col){ if(_oSort===col)_oSortDir=_oSortDir==='asc'?'desc':'asc'; else{_oSort=col;_oSortDir='asc';} _oPage=1; renderOrdersTable(); }
+function goOrderPage(n){ _oPage=n; renderOrdersTable(); }
+function setOPs(n){ _oPs=n; _oPage=1; renderOrdersTable(); }
+function renderOrdersTable(){
+  const tbody=$('#oBody'); if(!tbody||!ordersCache) return;
+  const getV=(o,c)=>c==='created_at'?o.created_at||'':c==='customer'?o.customer||'':c==='total'?(o.total||0):'';
+  const sorted=sortRows(ordersCache,_oSort,_oSortDir,getV);
+  const page=pageSlice(sorted,_oPage,_oPs);
+  tbody.innerHTML=page.map(o=>`
+    <tr>
+      <td><div class="t-name">${esc(o.id.slice(0,8))}</div><div class="t-sub">${esc(new Date(o.created_at).toLocaleDateString('es-CL'))}</div></td>
+      <td><div class="t-name">${esc(o.customer)}</div><div class="t-sub">${esc(o.phone||'')}</div></td>
+      <td><b>${CLP(o.total)}</b></td>
+      <td>${esc(o.pay_method||'—')}<div class="t-sub">${esc(o.pay_status||'')}</div></td>
+      <td><select onchange="setOrderStatus('${o.id}',this.value)" style="padding:.4em .6em;border-radius:8px;border:1.5px solid var(--line);font-size:.82rem;font-weight:600">
+        ${ORDER_STATES.map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><div class="row-actions" style="justify-content:flex-end">
+        <button class="iconbtn" onclick="viewOrder('${o.id}')" title="Detalle">${IC.eye}</button>
+        <button class="iconbtn" style="color:#128c4b" onclick="waOrder('${o.id}')" title="WhatsApp">${IC.wa}</button>
+        <button class="iconbtn del" onclick="delOrder('${o.id}')">${IC.del}</button>
+      </div></td>
+    </tr>`).join('')||'<tr><td colspan="6" class="empty-row">Sin pedidos</td></tr>';
+  renderPager('oPager',sorted.length,_oPage,'goOrderPage',_oPs,'setOPs');
+  updateSortHead('oHead',_oSort,_oSortDir);
+}
+async function renderOrders(){
+  if(!Lloope.auth.isConfigured()){ $('#oBody').innerHTML='<tr><td colspan="6" class="empty-row">Sin pedidos (backend no configurado)</td></tr>'; return; }
+  const {data, error}=await Lloope.auth.allOrders();
+  const tbody=$('#oBody'); if(!tbody) return;
+  if(error){ tbody.innerHTML='<tr><td colspan="6" class="empty-row">No se pudieron cargar los pedidos.</td></tr>'; return; }
+  ordersCache=data;
+  renderOrdersTable();
+}
+async function setOrderStatus(id,st){
+  const {error}=await Lloope.auth.updateOrderStatus(id,st);
+  if(error){ toast('No se pudo actualizar el estado.','err'); return; }
+  const o=ordersCache.find(x=>x.id===id); if(o) o.status=st;
+  toast('Estado: '+st);
+}
+async function delOrder(id){
+  if(!await deleteConfirm('El pedido se eliminará permanentemente del historial.'))return;
+  const {error}=await Lloope.auth.deleteOrder(id);
+  if(error){ toast('No se pudo eliminar el pedido.','err'); return; }
+  renderOrders(); refreshBadges(); toast('Pedido eliminado');
+}
+function waOrder(id){
+  const o=ordersCache.find(x=>x.id===id); if(!o) return;
+  const wa=Lloope.get('contact').whatsapp;
+  const msg=`Hola ${o.customer}, te escribimos de Lloope por tu pedido. Estado actual: ${o.status}.`;
+  window.open(`https://wa.me/${(o.phone||'').replace(/\D/g,'')||wa}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function viewOrder(id){
+  const o=ordersCache.find(x=>x.id===id); if(!o) return;
+  openModal('Pedido '+o.id.slice(0,8),`
+    <div class="grid-2">
+      <div class="field"><label>Cliente</label><div class="t-name">${esc(o.customer)}</div></div>
+      <div class="field"><label>Fecha</label><div>${esc(new Date(o.created_at).toLocaleString('es-CL'))}</div></div>
+      <div class="field"><label>Teléfono</label><div>${esc(o.phone||'—')}</div></div>
+      <div class="field"><label>Correo</label><div>${esc(o.email||'—')}</div></div>
+      <div class="field"><label>Método de pago</label><div>${esc(o.pay_method||'—')}</div></div>
+      <div class="field"><label>Estado de pago</label><div>${esc(o.pay_status||'—')}</div></div>
+      <div class="field"><label>Estado del pedido</label><div>${orderBadge(o.status)}</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="field"><label>Productos</label>
+      <div class="tbl-wrap"><table><thead><tr><th>Producto</th><th>Cant.</th><th style="text-align:right">Subtotal</th></tr></thead>
+      <tbody>${(o.items||[]).map(it=>`<tr><td>${esc(it.name)}</td><td>${it.qty}</td><td style="text-align:right">${CLP(it.price*it.qty)}</td></tr>`).join('')}
+      <tr><td colspan="2" style="text-align:right;font-weight:800">Total</td><td style="text-align:right;font-weight:800">${CLP(o.total)}</td></tr></tbody></table></div>
+    </div>
+    <div class="field"><label>Observaciones</label><div class="t-sub">${esc(o.notes||'Sin observaciones')}</div></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cerrar</button><button class="btn btn-wa" onclick="waOrder('${o.id}')">${IC.wa} Contactar por WhatsApp</button>`);
+}
+
+/* ---------- BANNERS DE CAMPAÑA ---------- */
+function fmtRange(a,b){ return `${a||'—'} → ${b||'—'}`; }
+function isBannerActiveAdmin(b){ return Lloope.isActiveNow(b); }
+VIEWS.banners=(c)=>{
+  c.innerHTML=`
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>Úsalos para Cyber Day, Cyber Monday, Black Friday, aniversario, lanzamientos u ofertas especiales. Solo se muestra en la tienda el banner <b>activo</b> cuya fecha de hoy esté dentro de su vigencia. Si hay más de uno vigente, se muestra el más reciente.</div></div>
+    <div class="panel">
+      <div class="panel-head"><div><h2>Banners</h2><p class="lead" style="margin:0">Crea, edita, activa/desactiva o elimina banners de campaña.</p></div>
+      <button class="btn btn-wood" id="bnAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nuevo banner</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Banner</th><th>Vigencia</th><th>Estado</th><th style="text-align:right">Acciones</th></tr></thead>
+      <tbody id="bnBody"></tbody></table></div>
+    </div>`;
+  renderBannersTable();
+  $('#bnAdd').onclick=()=>editBanner(null);
+};
+function renderBannersTable(){
+  const list=Lloope.get('banners');
+  $('#bnBody').innerHTML=list.map(b=>{
+    const live=isBannerActiveAdmin(b);
+    return `<tr>
+      <td><div class="t-name">${esc(b.title)}</div><div class="t-sub">${esc(b.text||'').slice(0,60)}</div></td>
+      <td class="t-sub">${fmtRange(b.startDate,b.endDate)}</td>
+      <td>${badge(b.active)} ${live?'<span class="badge2 b-on" style="margin-left:4px">● visible ahora</span>':''}</td>
+      <td><div class="row-actions" style="justify-content:flex-end">
+        <button class="iconbtn" onclick="toggleBanner(${b.id})" title="Activar/desactivar">${b.active?IC.eye:IC.eyeoff}</button>
+        <button class="iconbtn edit" onclick="editBanner(${b.id})">${IC.edit}</button>
+        <button class="iconbtn del" onclick="delBanner(${b.id})">${IC.del}</button>
+      </div></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="4" class="empty-row">Sin banners creados</td></tr>';
+}
+function toggleBanner(id){ const l=Lloope.get('banners'); const b=l.find(x=>x.id===id); b.active=!b.active; Lloope.set('banners',l); renderBannersTable(); }
+async function delBanner(id){ if(!await deleteConfirm('El banner se eliminará del carrusel de la tienda.'))return; Lloope.set('banners',Lloope.get('banners').filter(x=>x.id!==id)); renderBannersTable(); toast('Banner eliminado'); }
+function editBanner(id){
+  const l=Lloope.get('banners'); const b=id?l.find(x=>x.id===id):{title:'',text:'',image:'',bgColor:'#8A4E2C',buttonText:'',buttonLink:'#catalogo',startDate:Lloope.today(),endDate:'',active:false};
+  openModal(id?'Editar banner':'Nuevo banner',`
+    <div class="field"><label>Título *</label><input type="text" id="bn_title" value="${escAttr(b.title)}" placeholder="Ej: Cyber Days Lloope"></div>
+    <div class="field"><label>Texto corto</label><textarea id="bn_text" style="min-height:70px">${esc(b.text)}</textarea></div>
+    <div class="grid-2">
+      <div class="field"><label>Texto del botón <span class="hint">(opcional)</span></label><input type="text" id="bn_btntext" value="${escAttr(b.buttonText)}" placeholder="Ver catálogo"></div>
+      <div class="field"><label>Enlace del botón</label><input type="text" id="bn_btnlink" value="${escAttr(b.buttonLink)}" placeholder="#catalogo"></div>
+    </div>
+    <div class="field"><label>Color de fondo</label><div class="color-row" style="margin-bottom:0"><input type="color" id="bn_color" value="${cval(b.bgColor)}"><div class="cx"><b>Se usa si no hay imagen, o como base detrás de la imagen</b></div></div></div>
+    <div class="field" style="margin-top:1rem"><label>Imagen de fondo <span class="hint">(opcional)</span></label>
+      <img class="thumb" id="bn_img_prev" src="${escAttr(b.image)}" style="${b.image?'':'display:none'}"><div style="height:8px"></div>
+      <input type="text" id="bn_img" value="${escAttr(b.image)}" placeholder="img/... o URL">
+      <div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="bn_img_file"></div>
+    </div>
+    <div class="grid-2" style="margin-top:1rem">
+      <div class="field"><label>Fecha de inicio</label><input type="date" id="bn_start" value="${escAttr(b.startDate)}"></div>
+      <div class="field"><label>Fecha de término</label><input type="date" id="bn_end" value="${escAttr(b.endDate)}"></div>
+    </div>
+    ${sw('bn_active','Banner visible (activo)',b.active)}`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-wood" id="bn_ok">Guardar</button>`);
+  bindFilePreview('bn_img_file','bn_img','bn_img_prev');
+  $('#bn_img').oninput=e=>{ const p=$('#bn_img_prev'); p.src=e.target.value; p.style.display=e.target.value?'':'none'; };
+  $('#bn_ok').onclick=()=>{
+    const title=$('#bn_title').value.trim(); if(!title){toast('El título es obligatorio','warn');return;}
+    const list=Lloope.get('banners');
+    const data={ title, text:$('#bn_text').value, image:$('#bn_img').value, bgColor:$('#bn_color').value,
+      buttonText:$('#bn_btntext').value, buttonLink:$('#bn_btnlink').value||'#catalogo',
+      startDate:$('#bn_start').value, endDate:$('#bn_end').value, active:$('#bn_active').checked };
+    if(id){ Object.assign(list.find(x=>x.id===id),data); }
+    else{ data.id=Lloope.nextId(list); list.push(data); }
+    Lloope.set('banners',list); closeModal(); renderBannersTable(); toast('Banner guardado');
+  };
+}
+
+/* ---------- MARCAS / LOGOS CORPORATIVOS ---------- */
+VIEWS.corpLogos=(c)=>{
+  c.innerHTML=`
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>Se muestran como carrusel en la sección "Diseño a pedido & corporativo" de la tienda. Solo se publican los logos marcados como <b>activos</b>. Si dejas la URL vacía, el logo muestra su nombre al pasar el mouse pero no es clickeable.</div></div>
+    <div class="panel">
+      <div class="panel-head"><div><h2>Logos de marcas</h2><p class="lead" style="margin:0">Empresas y marcas que confían en Lloope.</p></div>
+      <button class="btn btn-wood" id="clAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nuevo logo</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Logo</th><th>Marca</th><th>URL</th><th>Estado</th><th style="text-align:right">Acciones</th></tr></thead>
+      <tbody id="clBody"></tbody></table></div>
+    </div>`;
+  renderCorpLogosTable();
+  $('#clAdd').onclick=()=>editCorpLogo(null);
+};
+function renderCorpLogosTable(){
+  const list=Lloope.get('corpLogos');
+  $('#clBody').innerHTML=list.map(l=>`
+    <tr>
+      <td><img class="t-img" src="${escAttr(l.image)}" alt="${escAttr(l.name)}" style="object-fit:contain;background:#fff;padding:4px"></td>
+      <td class="t-name">${esc(l.name)}</td>
+      <td class="t-sub">${l.url?esc(l.url):'<span class="hint">Sin link</span>'}</td>
+      <td>${badge(l.active)}</td>
+      <td><div class="row-actions" style="justify-content:flex-end">
+        <button class="iconbtn" onclick="toggleCorpLogo(${l.id})" title="Activar/desactivar">${l.active?IC.eye:IC.eyeoff}</button>
+        <button class="iconbtn edit" onclick="editCorpLogo(${l.id})">${IC.edit}</button>
+        <button class="iconbtn del" onclick="delCorpLogo(${l.id})">${IC.del}</button>
+      </div></td>
+    </tr>`).join('')||'<tr><td colspan="5" class="empty-row">Sin logos creados</td></tr>';
+}
+function toggleCorpLogo(id){ const l=Lloope.get('corpLogos'); const x=l.find(i=>i.id===id); x.active=!x.active; Lloope.set('corpLogos',l); renderCorpLogosTable(); }
+async function delCorpLogo(id){ if(!await deleteConfirm('El logo corporativo se eliminará de la sección de clientes.'))return; Lloope.set('corpLogos',Lloope.get('corpLogos').filter(x=>x.id!==id)); renderCorpLogosTable(); toast('Logo eliminado'); }
+function editCorpLogo(id){
+  const l=Lloope.get('corpLogos'); const x=id?l.find(i=>i.id===id):{name:'',image:'',url:'',active:true};
+  openModal(id?'Editar logo':'Nuevo logo',`
+    <div class="field"><label>Nombre de la marca *</label><input type="text" id="cl_name" value="${escAttr(x.name)}" placeholder="Ej: Agrosuper"></div>
+    <div class="field"><label>Logo</label>
+      <img class="thumb sm" id="cl_img_prev" src="${escAttr(x.image)}" style="background:#fff;${x.image?'':'display:none'}"><div style="height:8px"></div>
+      <input type="text" id="cl_img" value="${escAttr(x.image)}" placeholder="img/... o URL">
+      <div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="cl_img_file"></div>
+    </div>
+    <div class="field"><label>URL del sitio de la marca <span class="hint">(opcional — vacío = no clickeable)</span></label><input type="url" id="cl_url" value="${escAttr(x.url)}" placeholder="https://..."></div>
+    ${sw('cl_active','Logo visible (activo)',x.active)}`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-wood" id="cl_ok">Guardar</button>`);
+  bindFilePreview('cl_img_file','cl_img','cl_img_prev');
+  $('#cl_img').oninput=e=>{ const p=$('#cl_img_prev'); p.src=e.target.value; p.style.display=e.target.value?'':'none'; };
+  $('#cl_ok').onclick=()=>{
+    const name=$('#cl_name').value.trim(); if(!name){toast('El nombre de la marca es obligatorio','warn');return;}
+    const list=Lloope.get('corpLogos');
+    const data={ name, image:$('#cl_img').value.trim(), url:$('#cl_url').value.trim(), active:$('#cl_active').checked };
+    if(id){ Object.assign(list.find(i=>i.id===id),data); }
+    else{ data.id=Lloope.nextId(list); list.push(data); }
+    Lloope.set('corpLogos',list); closeModal(); renderCorpLogosTable(); toast('Logo guardado');
+  };
+}
+
+/* ---------- OPCIONES DE CAMPOS (combobox) ---------- */
+const FO_DEFS=[
+  {key:'material', label:'Material / madera',          placeholder:'Ej: MDF 15mm'},
+  {key:'measures', label:'Medidas',                    placeholder:'Ej: 60 × 30 cm'},
+  {key:'fabTime',  label:'Tiempo de fabricación',      placeholder:'Ej: 5 a 7 días'}
+];
+VIEWS.fieldOptions=(c)=>{
+  c.innerHTML=`
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>Estas listas aparecen como sugerencias al escribir en los campos del formulario de producto. El admin puede escribir valores que no estén en la lista — son solo atajos, no restricciones.</div></div>
+    <div id="foRoot" style="display:grid;gap:16px"></div>`;
+  renderFieldOptions();
+};
+function renderFieldOptions(){
+  const root=$('#foRoot'); if(!root) return;
+  const opts=Lloope.get('fieldOptions')||{};
+  root.innerHTML=FO_DEFS.map(f=>{
+    const items=opts[f.key]||[];
+    return `<div class="panel" style="padding:20px">
+      <strong style="font-size:.95rem">${esc(f.label)}</strong>
+      <div class="fo-tags" id="fo_${f.key}" style="margin:12px 0">
+        ${items.map((v,i)=>`<span class="fo-tag">${esc(v)}<button type="button" title="Eliminar" onclick="removeFO('${f.key}',${i})">${IC.del}</button></span>`).join('')
+          ||'<span class="t-sub">Sin opciones aún</span>'}
+      </div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="fo_in_${f.key}" placeholder="${esc(f.placeholder)}" style="flex:1;padding:.6em .9em;border-radius:var(--r-sm);border:1.5px solid var(--line);font-size:.9rem;color:var(--espresso);background:var(--cream)">
+        <button class="btn btn-ghost" onclick="addFO('${f.key}')">+ Agregar</button>
+      </div>
+    </div>`;
+  }).join('');
+  FO_DEFS.forEach(f=>{
+    const inp=$(`#fo_in_${f.key}`);
+    if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); addFO(f.key); } });
+  });
+}
+function addFO(key){
+  const inp=$(`#fo_in_${key}`); if(!inp) return;
+  const val=inp.value.trim(); if(!val){ inp.focus(); return; }
+  const opts=Lloope.get('fieldOptions')||{};
+  if(!opts[key]) opts[key]=[];
+  if(opts[key].includes(val)){ toast('Ya existe esa opción'); return; }
+  opts[key].push(val);
+  Lloope.set('fieldOptions',opts);
+  inp.value=''; inp.focus();
+  renderFieldOptions();
+  toast(`"${val}" agregado`);
+}
+function removeFO(key,idx){
+  const opts=Lloope.get('fieldOptions')||{};
+  if(!opts[key]) return;
+  const removed=opts[key].splice(idx,1)[0];
+  Lloope.set('fieldOptions',opts);
+  renderFieldOptions();
+  toast(`"${removed}" eliminado`);
+}
+
+/* ---------- CUPONES ---------- */
+function couponDesc(c){ return c.type==='percent' ? `${c.value}%` : Lloope.money(c.value); }
+function isCouponActiveAdmin(c){ return Lloope.isActiveNow(c); }
+VIEWS.coupons=(c)=>{
+  const wp=Lloope.get('welcomePopup');
+  const leads=Lloope.getLeads();
+  c.innerHTML=`
+    <div class="panel">
+      <h2>Cupón de bienvenida (pop-up de salida)</h2>
+      <p class="lead">Se muestra cuando un visitante intenta irse del sitio (o tras un rato en celular), invitándolo a dejar su correo a cambio de un descuento en su primera compra.</p>
+      ${sw('wp_en','Pop-up activado',wp.enabled)}
+      <div class="grid-2" style="margin-top:1rem">
+        <div class="field"><label>Título</label><input type="text" id="wp_title" value="${escAttr(wp.title)}"></div>
+        <div class="field"><label>Texto del sello</label><input type="text" id="wp_badge" value="${escAttr(wp.badgeText)}" placeholder="10% OFF"></div>
+      </div>
+      <div class="field"><label>Texto</label><textarea id="wp_text">${esc(wp.text)}</textarea></div>
+      <div class="grid-2">
+        <div class="field"><label>Código de cupón a mostrar <span class="hint">(debe existir y estar activo abajo)</span></label><input type="text" id="wp_code" value="${escAttr(wp.couponCode)}"></div>
+        <div class="field"><label>Texto del botón</label><input type="text" id="wp_btn" value="${escAttr(wp.buttonText)}"></div>
+      </div>
+      <div class="field"><label>Imagen de fondo <span class="hint">(opcional)</span></label>
+        <img class="thumb" id="wp_img_prev" src="${escAttr(wp.image)}" style="${wp.image?'':'display:none'}"><div style="height:8px"></div>
+        <input type="text" id="wp_img" value="${escAttr(wp.image)}" placeholder="img/... o URL">
+        <div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="wp_img_file"></div>
+      </div>
+      <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div>Los correos capturados se guardan <b>solo en el navegador de cada visitante</b> — esto no te los envía a ti. Para recibirlos de verdad hay que conectar un servicio real (EmailJS, Formspree, Brevo, etc.). Ver PRODUCCION.md. Abajo puedes ver los que se hayan capturado en <b>este</b> navegador, solo a modo de referencia.</div></div>
+      <div class="form-actions"><button class="btn btn-wood" id="wp_save">Guardar cupón de bienvenida</button></div>
+    </div>
+    <div class="panel">
+      <h2>Leads capturados en este navegador</h2>
+      <p class="lead" style="margin-bottom:.8rem">Solo de referencia — no incluye leads capturados en otros dispositivos.</p>
+      <div class="tbl-wrap"><table><thead><tr><th>Correo</th><th>Fecha</th></tr></thead>
+      <tbody>${leads.map(l=>`<tr><td>${esc(l.email)}</td><td class="t-sub">${esc(new Date(l.date).toLocaleString('es-CL'))}</td></tr>`).join('')||'<tr><td colspan="2" class="empty-row">Sin leads capturados todavía</td></tr>'}</tbody></table></div>
+    </div>
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>El cliente ingresa el código en el carrito. Si no existe, está vencido o inactivo, verá un mensaje explicándolo. <b>Uso único</b> se controla en el navegador del cliente (no a prueba de trampas): para un control 100% confiable a través de distintos dispositivos se necesita validar el cupón desde un backend — ver PRODUCCION.md.</div></div>
+    <div class="panel">
+      <div class="panel-head"><div><h2>Cupones de descuento</h2><p class="lead" style="margin:0">Crea, edita, activa/desactiva o elimina cupones.</p></div>
+      <button class="btn btn-wood" id="cpAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nuevo cupón</button></div>
+      <div class="tbl-wrap"><table><thead><tr id="cpHead"><th data-col="code" class="th-sort" onclick="setCpSort('code')">Código</th><th>Descuento</th><th data-col="startDate" class="th-sort" onclick="setCpSort('startDate')">Vigencia</th><th>Uso único</th><th>Estado</th><th style="text-align:right">Acciones</th></tr></thead>
+      <tbody id="cpBody"></tbody></table><div class="tbl-foot"><div class="pager" id="cpPager"></div></div></div>
+    </div>`;
+  renderCouponsTable();
+  $('#cpAdd').onclick=()=>editCoupon(null);
+  bindFilePreview('wp_img_file','wp_img','wp_img_prev');
+  $('#wp_img').oninput=e=>{ const p=$('#wp_img_prev'); p.src=e.target.value; p.style.display=e.target.value?'':'none'; };
+  $('#wp_save').onclick=()=>{
+    save('welcomePopup',{ enabled:$('#wp_en').checked, title:$('#wp_title').value, text:$('#wp_text').value,
+      badgeText:$('#wp_badge').value, image:$('#wp_img').value, couponCode:$('#wp_code').value.trim().toUpperCase(),
+      buttonText:$('#wp_btn').value },'Cupón de bienvenida guardado');
+  };
+};
+var _cpSort='code',_cpSortDir='asc',_cpPage=1,_cpPs=20;
+function setCpSort(col){ if(_cpSort===col)_cpSortDir=_cpSortDir==='asc'?'desc':'asc'; else{_cpSort=col;_cpSortDir='asc';} _cpPage=1; renderCouponsTable(); }
+function goCpPage(n){ _cpPage=n; renderCouponsTable(); }
+function setCpPs(n){ _cpPs=n; _cpPage=1; renderCouponsTable(); }
+function renderCouponsTable(){
+  const list=Lloope.get('coupons');
+  const getV=(c,col)=>col==='code'?c.code||'':col==='startDate'?c.startDate||'':'';
+  const sorted=sortRows(list,_cpSort,_cpSortDir,getV);
+  const page=pageSlice(sorted,_cpPage,_cpPs);
+  $('#cpBody').innerHTML=page.map(c=>{
+    const live=isCouponActiveAdmin(c);
+    return `<tr>
+      <td class="t-name">${esc(c.code)}</td>
+      <td><b>${couponDesc(c)}</b></td>
+      <td class="t-sub">${fmtRange(c.startDate,c.endDate)}</td>
+      <td>${c.singleUse?'<span class="badge2 b-warn">Sí</span>':'<span class="badge2 b-off">No</span>'}</td>
+      <td>${badge(c.active)} ${live?'<span class="badge2 b-on" style="margin-left:4px">● vigente</span>':''}</td>
+      <td><div class="row-actions" style="justify-content:flex-end">
+        <button class="iconbtn" onclick="toggleCoupon(${c.id})" title="Activar/desactivar">${c.active?IC.eye:IC.eyeoff}</button>
+        <button class="iconbtn edit" onclick="editCoupon(${c.id})">${IC.edit}</button>
+        <button class="iconbtn del" onclick="delCoupon(${c.id})">${IC.del}</button>
+      </div></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="6" class="empty-row">Sin cupones creados</td></tr>';
+  renderPager('cpPager',sorted.length,_cpPage,'goCpPage',_cpPs,'setCpPs');
+  updateSortHead('cpHead',_cpSort,_cpSortDir);
+}
+function toggleCoupon(id){ const l=Lloope.get('coupons'); const c=l.find(x=>x.id===id); c.active=!c.active; Lloope.set('coupons',l); renderCouponsTable(); }
+async function delCoupon(id){ if(!await deleteConfirm('El cupón se eliminará y dejará de ser válido en la tienda.'))return; Lloope.set('coupons',Lloope.get('coupons').filter(x=>x.id!==id)); renderCouponsTable(); toast('Cupón eliminado'); }
+function editCoupon(id){
+  const l=Lloope.get('coupons'); const c=id?l.find(x=>x.id===id):{code:'',type:'percent',value:10,startDate:Lloope.today(),endDate:'',active:true,singleUse:false};
+  openModal(id?'Editar cupón':'Nuevo cupón',`
+    <div class="field"><label>Código *</label><input type="text" id="cp_code" value="${escAttr(c.code)}" placeholder="Ej: VERANO10" style="text-transform:uppercase"></div>
+    <div class="grid-2">
+      <div class="field"><label>Tipo de descuento</label><select id="cp_type"><option value="percent" ${c.type==='percent'?'selected':''}>Porcentaje (%)</option><option value="fixed" ${c.type==='fixed'?'selected':''}>Monto fijo (CLP)</option></select></div>
+      <div class="field"><label>Valor</label><input type="number" id="cp_value" value="${c.value}" min="0"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Fecha de inicio</label><input type="date" id="cp_start" value="${escAttr(c.startDate)}"></div>
+      <div class="field"><label>Fecha de término</label><input type="date" id="cp_end" value="${escAttr(c.endDate)}"></div>
+    </div>
+    ${sw('cp_single','Cupón de un solo uso',c.singleUse)}
+    ${sw('cp_active','Cupón activo',c.active)}`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-wood" id="cp_ok">Guardar</button>`);
+  $('#cp_ok').onclick=()=>{
+    const code=$('#cp_code').value.trim().toUpperCase(); if(!code){toast('El código es obligatorio','warn');return;}
+    const list=Lloope.get('coupons');
+    const dupe=list.find(x=>x.code.toUpperCase()===code && x.id!==id);
+    if(dupe){ toast('Ya existe un cupón con ese código.','warn'); return; }
+    const data={ code, type:$('#cp_type').value, value:+$('#cp_value').value||0,
+      startDate:$('#cp_start').value, endDate:$('#cp_end').value,
+      singleUse:$('#cp_single').checked, active:$('#cp_active').checked };
+    if(id){ Object.assign(list.find(x=>x.id===id),data); }
+    else{ data.id=Lloope.nextId(list); list.push(data); }
+    Lloope.set('coupons',list); closeModal(); renderCouponsTable(); toast('Cupón guardado');
+  };
+}
+
+/* ---------- TEXTOS LEGALES ---------- */
+VIEWS.legal=(c)=>{
+  const k=Lloope.get('legal');
+  const ta=(id,label,val)=>`<div class="field"><label>${label}</label><textarea id="${id}" style="min-height:110px">${esc(val)}</textarea></div>`;
+  c.innerHTML=`
+    <div class="panel">
+      <h2>Textos legales y de confianza</h2><p class="lead">Se publican automáticamente en <b>legal.html</b> y se enlazan desde el footer de la tienda y el checkout de <b>cart.html</b>.</p>
+      ${ta('lg_terms','Términos y condiciones',k.terms)}
+      ${ta('lg_priv','Política de privacidad',k.privacy)}
+      ${ta('lg_ret','Política de cambios y devoluciones',k.returns)}
+      ${ta('lg_ship','Política de despacho',k.shipping)}
+      <div class="grid-2">
+        <div class="field"><label>Mensaje sobre IVA</label><input type="text" id="lg_iva" value="${escAttr(k.iva)}"></div>
+        <div class="field"><label>Mensaje de compra segura</label><input type="text" id="lg_sec" value="${escAttr(k.secure)}"></div>
+      </div>
+      ${ta('lg_rights','Tus datos y tus derechos (Ley 21.719 / protección de datos)',k.dataRights)}
+      <p class="lead" style="margin-top:-.6rem">Recomendamos que esta sección y la Política de privacidad sean revisadas por alguien con conocimiento legal antes de publicar el sitio.</p>
+      <div class="form-actions"><button class="btn btn-wood" id="lg_save">Guardar textos</button></div>
+    </div>`;
+  $('#lg_save').onclick=()=>save('legal',{ terms:$('#lg_terms').value, privacy:$('#lg_priv').value, returns:$('#lg_ret').value, shipping:$('#lg_ship').value, iva:$('#lg_iva').value, secure:$('#lg_sec').value, dataRights:$('#lg_rights').value },'Textos legales guardados');
+};
+
+/* ---------- CONFIGURACIÓN GENERAL ---------- */
+VIEWS.settings=(c)=>{
+  const s=Lloope.get('settings');
+  c.innerHTML=`
+    <div class="panel">
+      <h2>Identidad de la tienda</h2><p class="lead">Nombre, logo y textos generales.</p>
+      <div class="grid-2">
+        <div class="field"><label>Nombre de la tienda</label><input type="text" id="s_name" value="${escAttr(s.storeName)}"></div>
+        <div class="field"><label>Bajada / tagline</label><input type="text" id="s_tag" value="${escAttr(s.tagline)}"></div>
+      </div>
+      <div class="field"><label>Logo</label>
+        <img class="thumb sm" id="s_logo_prev" src="${escAttr(s.logo)}" style="background:var(--espresso);padding:10px"><div style="height:8px"></div>
+        <input type="text" id="s_logo" value="${escAttr(s.logo)}">
+        <div class="uploader" style="margin-top:8px"><input type="file" accept="image/*" id="s_logo_file"></div>
+      </div>
+      <div class="field"><label>Mensaje del footer</label><textarea id="s_foot">${esc(s.footerMessage)}</textarea></div>
+    </div>
+    <div class="panel">
+      <h2>Estilo visual</h2><p class="lead">Colores y tipografía de referencia.</p>
+      <div class="color-row"><input type="color" id="s_c1" value="${cval(s.colorPrimary)}"><div class="cx"><b>Color principal</b><span>Acentos y detalles</span></div></div>
+      <div class="color-row"><input type="color" id="s_c2" value="${cval(s.colorSecondary)}"><div class="cx"><b>Color secundario</b><span>Etiquetas y estados</span></div></div>
+      <div class="color-row"><input type="color" id="s_c3" value="${cval(s.colorButton)}"><div class="cx"><b>Color de botones</b><span>Botones principales</span></div></div>
+      <div class="grid-2">
+        <div class="field"><label>Tipografía</label><select id="s_font"><option ${s.font==='Manrope'?'selected':''}>Manrope</option><option ${s.font==='Jost'?'selected':''}>Jost</option><option ${s.font==='Fraunces'?'selected':''}>Fraunces</option></select></div>
+        <div class="field"><label>Moneda</label><input type="text" id="s_cur" value="${escAttr(s.currency)}"></div>
+      </div>
+      ${sw('s_iva','Precios incluyen IVA',s.ivaIncluded)}
+    </div>
+    <div class="panel">
+      <h2>Estado de la tienda</h2>
+      <div class="field"><label>Disponibilidad</label>
+        <select id="s_status"><option value="active" ${s.status==='active'?'selected':''}>Tienda activa (online)</option><option value="maintenance" ${s.status==='maintenance'?'selected':''}>En mantenimiento</option></select>
+      </div>
+      <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><div>En “mantenimiento” la tienda pública muestra una pantalla de “Volvemos pronto” con tus datos de contacto.</div></div>
+      <div class="form-actions"><button class="btn btn-wood" id="s_save">Guardar configuración</button></div>
+    </div>`;
+  bindFilePreview('s_logo_file','s_logo','s_logo_prev'); $('#s_logo').oninput=e=>$('#s_logo_prev').src=e.target.value;
+  $('#s_save').onclick=()=>{
+    const s2=Lloope.get('settings');
+    Object.assign(s2,{ storeName:$('#s_name').value, tagline:$('#s_tag').value, logo:$('#s_logo').value,
+      colorPrimary:$('#s_c1').value, colorSecondary:$('#s_c2').value, colorButton:$('#s_c3').value,
+      font:$('#s_font').value, currency:$('#s_cur').value, ivaIncluded:$('#s_iva').checked,
+      footerMessage:$('#s_foot').value, status:$('#s_status').value });
+    if(Lloope.set('settings',s2)){ const im=Lloope.get('images'); im.logo=s2.logo; Lloope.set('images',im); toast('Configuración guardada'); }
+  };
+};
+function cval(v){ return (v&&/^#/.test(v))?v:'#B06B3E'; }
+
+/* ---------- USUARIOS (lloope-api) ---------- */
+const ROLE_LABELS={ sysadmin:'Super Admin', admin:'Administrador', customer:'Cliente' };
+const ROLE_BADGE ={ sysadmin:'b-warn', admin:'b-info', customer:'b-on' };
+let _currentRole='';
+let _apiUsers=[];
+let _usersFilter='all';
+let _products=[];
+let _categories=[];
+
+function getApiUrl(){ return (Lloope.get('supabase')?.apiUrl||'').replace(/\/$/,''); }
+
+async function apiFetch(path, opts={}, auth=true){
+  const base=getApiUrl();
+  if(!base) return {error:'API URL no configurada — ve a Ajustes → Integraciones'};
+  const headers={'Content-Type':'application/json'};
+  if(auth){
+    const session=await Lloope.auth.getSession();
+    if(!session) return {error:'Sin sesión activa'};
+    headers['Authorization']='Bearer '+session.access_token;
+  }
+  try{
+    const res=await fetch(base+path,{...opts,headers:{...headers,...(opts.headers||{})}});
+    return await res.json();
+  }catch(e){ return {error:'No se pudo conectar con la API: '+e.message}; }
+}
+
+/* Normaliza un row de la tabla products (snake_case) al formato camelCase del admin */
+function normProduct(p){
+  return {id:p.id,name:p.name,sku:p.sku||'',cat:p.cat||'',price:p.price||0,
+    offerPrice:p.offer_price||0,stock:p.stock||0,active:p.active??true,
+    featured:p.featured??false,custom:p.custom??false,quote:p.quote??false,
+    descShort:p.desc_short||'',descLong:p.desc_long||'',measures:p.measures||'',
+    material:p.material||'',fabTime:p.fab_time||'',image:p.image||'img/logo-mark.png',gallery:p.gallery||[],faq:p.faq||[]};
+}
+async function loadApiProducts(){
+  const el=$('#pBody');
+  if(el) el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--coffee)">Cargando…</td></tr>';
+  const data=await apiFetch('/api/products',{},false);
+  if(data.error){ if(el) el.innerHTML=`<tr><td colspan="7" class="empty-row" style="color:var(--danger)">${esc(data.error)}</td></tr>`; return; }
+  _products=(data.products||[]).map(normProduct);
+  renderProductsTable();
+}
+async function loadApiCategories(){
+  const el=$('#cBody');
+  if(el) el.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--coffee)">Cargando…</td></tr>';
+  const data=await apiFetch('/api/categories',{},false);
+  if(data.error){ if(el) el.innerHTML=`<tr><td colspan="5" class="empty-row" style="color:var(--danger)">${esc(data.error)}</td></tr>`; return; }
+  _categories=(data.categories||[]).map(c=>({id:c.id,name:c.name,image:c.image||'',active:c.active??true,order:c.ord||0}));
+  renderCatsTable();
+}
+
+VIEWS.users=async(c)=>{
+  const apiOk=!!getApiUrl();
+  c.innerHTML=`
+    ${!apiOk?`<div class="note warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><div>API no configurada. Ingresa la URL de <b>lloope-api</b> en <a href="#" onclick="go('integrations')" style="color:var(--wood);font-weight:700">Ajustes → Integraciones</a> para gestionar usuarios reales.</div></div>`:''}
+    <div class="panel">
+      <div class="panel-head"><div><h2>Usuarios</h2><p class="lead" style="margin:0">Usuarios reales de Supabase Auth, gestionados vía lloope-api.</p></div>
+      <button class="btn btn-wood" id="uAdd" ${!apiOk?'disabled title="Configura la API primero"':''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nuevo usuario</button></div>
+      <div class="tbl-wrap"><table><thead><tr id="uHead"><th data-col="name" class="th-sort" onclick="setUSort('name')">Nombre</th><th data-col="email" class="th-sort" onclick="setUSort('email')">Correo</th><th data-col="last_sign_in" class="th-sort" onclick="setUSort('last_sign_in')">Último acceso</th><th data-col="role" class="th-sort" onclick="setUSort('role')">Rol</th><th>Estado</th><th style="text-align:right">Acciones</th></tr></thead>
+      <tbody id="uBody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--coffee)">${apiOk?'Cargando…':'—'}</td></tr></tbody></table><div class="tbl-foot"><div class="pager" id="uPager"></div></div></div>
+    </div>`;
+  _usersFilter='all';
+  (function(){
+    var p=$('#uBody'); if(!p) return; p=p.closest('.panel'); if(!p) return;
+    var b=document.createElement('div');
+    b.style.cssText='display:flex;gap:.4rem;padding:.6rem 0;border-bottom:1px solid var(--line)';
+    var s='padding:.28rem .8rem;border-radius:20px;border:1px solid;font-size:.82rem;cursor:pointer;font-weight:500;font-family:var(--sans);transition:background .15s,color .15s';
+    var sA=s+';background:var(--espresso);color:#fff;border-color:var(--espresso)';
+    var sI=s+';background:transparent;color:var(--coffee);border-color:var(--line)';
+    b.innerHTML='<button id="uf_all" style="'+sA+'" onclick="setUserFilter(\'all\')">Todos</button>'
+      +'<button id="uf_customer" style="'+sI+'" onclick="setUserFilter(\'customer\')">Clientes</button>'
+      +'<button id="uf_admin" style="'+sI+'" onclick="setUserFilter(\'admin\')">Administradores</button>'
+      +'<button id="uf_sysadmin" style="'+sI+'" onclick="setUserFilter(\'sysadmin\')">Super Admin</button>';
+    var h=p.querySelector('.panel-head'); if(h) h.insertAdjacentElement('afterend',b);
+  })();
+  if(apiOk) await loadApiUsers();
+  $('#uAdd').onclick=()=>editApiUser(null);
+};
+
+async function loadApiUsers(){
+  const uBody=$('#uBody'); if(!uBody) return;
+  const data=await apiFetch('/api/users');
+  if(data.error){ uBody.innerHTML=`<tr><td colspan="6" class="empty-row" style="color:var(--danger)">${esc(data.error)}</td></tr>`; return; }
+  _apiUsers=data.users||[];
+  renderApiUsersTable();
+}
+
+var _uSort='name',_uSortDir='asc',_uPage=1,_uPs=20;
+function setUSort(col){ if(_uSort===col)_uSortDir=_uSortDir==='asc'?'desc':'asc'; else{_uSort=col;_uSortDir='asc';} _uPage=1; renderApiUsersTable(); }
+function goUserPage(n){ _uPage=n; renderApiUsersTable(); }
+function setUPs(n){ _uPs=n; _uPage=1; renderApiUsersTable(); }
+function renderApiUsersTable(){
+  const uBody=$('#uBody'); if(!uBody) return;
+  var list=_usersFilter==='all'?_apiUsers:_apiUsers.filter(function(u){ return u.role===_usersFilter; });
+  const getV=(u,c)=>c==='name'?u.name||u.email||'':c==='email'?u.email||'':c==='last_sign_in'?u.last_sign_in||'':c==='role'?u.role||'':'';
+  const sorted=sortRows(list,_uSort,_uSortDir,getV);
+  const page=pageSlice(sorted,_uPage,_uPs);
+  list=page;
+  if(!list.length){
+    var lbl=_usersFilter==='sysadmin'?'super admins':_usersFilter==='admin'?'administradores':_usersFilter==='customer'?'clientes':'usuarios';
+    uBody.innerHTML='<tr><td colspan="6" class="empty-row">Sin '+lbl+'</td></tr>';
+  } else {
+    uBody.innerHTML=list.map(u=>{
+      const initials=((u.name||u.email||'?').slice(0,2)).toUpperCase();
+      const lastSeen=u.last_sign_in?new Date(u.last_sign_in).toLocaleDateString('es-CL'):'Nunca';
+      const rolLabel=ROLE_LABELS[u.role]||u.role;
+      const rolBadge=ROLE_BADGE[u.role]||'b-on';
+      return `<tr>
+        <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:34px;height:34px;font-size:.75rem">${esc(initials)}</div><span class="t-name">${esc(u.name||'—')}</span></div></td>
+        <td class="t-sub">${esc(u.email)}</td>
+        <td class="t-sub">${esc(lastSeen)}</td>
+        <td><span class="badge2 ${rolBadge}">${esc(rolLabel)}</span></td>
+        <td>${badge(u.active)}</td>
+        <td><div class="row-actions" style="justify-content:flex-end">
+          ${u.role==='sysadmin'&&_currentRole!=='sysadmin'?'<span style="font-size:.78rem;color:var(--coffee);padding:0 .4rem">—</span>':`
+          <button class="iconbtn" onclick="toggleApiUser('${u.id}',${u.active})" title="${u.active?'Desactivar':'Activar'}">${u.active?IC.eye:IC.eyeoff}</button>
+          <button class="iconbtn edit" onclick="editApiUser('${u.id}')">${IC.edit}</button>
+          <button class="iconbtn del" onclick="delApiUser('${u.id}')">${IC.del}</button>`}
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+  renderPager('uPager',sorted.length,_uPage,'goUserPage',_uPs,'setUPs');
+  updateSortHead('uHead',_uSort,_uSortDir);
+}
+
+function setUserFilter(f){
+  _usersFilter=f; _uPage=1;
+  ['all','customer','admin','sysadmin'].forEach(function(k){
+    var el=$('#uf_'+k); if(!el) return;
+    var on=f===k;
+    el.style.background=on?'var(--espresso)':'transparent';
+    el.style.color=on?'#fff':'var(--coffee)';
+    el.style.borderColor=on?'var(--espresso)':'var(--line)';
+  });
+  renderApiUsersTable();
+}
+async function toggleApiUser(id, active){
+  const res=await apiFetch('/api/users/'+id,{method:'PUT',body:JSON.stringify({active:!active})});
+  if(res.error){ toast('Error: '+res.error); return; }
+  toast(active?'Usuario desactivado':'Usuario activado');
+  await loadApiUsers();
+}
+
+async function delApiUser(id){
+  if(!await deleteConfirm('El usuario se eliminará permanentemente de Supabase Auth y no podrá recuperarse.')) return;
+  const res=await apiFetch('/api/users/'+id,{method:'DELETE'});
+  if(res.error){ toast('Error: '+res.error,'err'); return; }
+  toast('Usuario eliminado'); await loadApiUsers();
+}
+
+function editApiUser(id){
+  const u=id?(_apiUsers.find(x=>x.id===id)||{}):null;
+  openModal(id?'Editar usuario':'Nuevo usuario',`
+    <div class="grid-2">
+      <div class="field"><label>Nombre</label><input type="text" id="u_name" value="${escAttr(u?.name||'')}"></div>
+      <div class="field"><label>Correo *</label><input type="email" id="u_email" value="${escAttr(u?.email||'')}" ${id?'disabled':''}></div>
+    </div>
+    ${!id?`<div class="field"><label>Contraseña *</label><div style="position:relative"><input type="password" id="u_pass" placeholder="Mínimo 8 caracteres"><button type="button" onclick="var i=$('#u_pass');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:var(--coffee);display:flex;align-items:center"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>`:''}
+    <div class="field"><label>Rol</label><select id="u_role">
+      <option value="customer" ${u?.role==='customer'?'selected':''}>Cliente</option>
+      <option value="admin" ${u?.role==='admin'?'selected':''}>Administrador</option>
+      ${_currentRole==='sysadmin'?`<option value="sysadmin" ${u?.role==='sysadmin'?'selected':''}>Super Admin</option>`:''}
+    </select></div>
+    ${id?sw('u_active','Usuario activo',u?.active!==false):''}`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-wood" id="u_ok">${id?'Guardar cambios':'Crear usuario'}</button>`);
+
+  $('#u_ok').onclick=async()=>{
+    const btn=$('#u_ok'); btn.disabled=true; btn.textContent='Guardando…';
+    let res;
+    if(id){
+      const body={name:$('#u_name').value,role:$('#u_role').value,active:$('#u_active')?.checked??true};
+      res=await apiFetch('/api/users/'+id,{method:'PUT',body:JSON.stringify(body)});
+    } else {
+      const email=$('#u_email').value.trim(); const pass=$('#u_pass').value;
+      if(!email||!pass){ toast('Correo y contraseña son obligatorios'); btn.disabled=false; btn.textContent='Crear usuario'; return; }
+      res=await apiFetch('/api/users',{method:'POST',body:JSON.stringify({email,password:pass,name:$('#u_name').value,role:$('#u_role').value})});
+    }
+    if(res.error){ toast('Error: '+res.error); btn.disabled=false; btn.textContent=id?'Guardar cambios':'Crear usuario'; return; }
+    closeModal(); toast(id?'Usuario actualizado':'Usuario creado'); await loadApiUsers();
+  };
+}
+
+/* ---------- INTEGRACIONES (Supabase) ---------- */
+VIEWS.integrations=(c)=>{
+  const cfg=Lloope.get('supabase');
+  c.innerHTML=`
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div>Esto habilita cuentas de cliente reales ("Mis pedidos" con estado) y el login del panel. Al guardar y <b>publicar cambios</b>, estos datos quedan en <code>data/store.json</code> junto con el resto del contenido — es lo que permite que tus clientes puedan crear cuenta e iniciar sesión.</div></div>
+    <div class="panel">
+      <div class="panel-head"><h2>Supabase</h2><span class="badge2 ${Lloope.auth.isConfigured()?'b-on':'b-off'}">${Lloope.auth.isConfigured()?'Conectado':'No configurado'}</span></div>
+      <p class="lead">Pega los datos de tu proyecto (Settings → API en supabase.com). Si todavía no tienes proyecto ni tablas, revisa el SQL más abajo o <b>PRODUCCION.md</b> sección 5.</p>
+      <div class="field"><label>Project URL</label><input type="text" id="sb_url" value="${escAttr(cfg.url)}" placeholder="https://xxxxxxxx.supabase.co"></div>
+      <div class="field"><label>Anon public key <span class="hint">(segura de compartir — nunca la service_role key aquí)</span></label><input type="text" id="sb_key" value="${escAttr(cfg.anonKey)}"></div>
+      <div class="divider" style="margin:1.2rem 0"></div>
+      <h3 style="font-size:.95rem;margin-bottom:.3rem">lloope-api <span class="hint" style="font-weight:500">(backend propio)</span></h3>
+      <p class="lead" style="margin-bottom:.8rem">URL del servidor Node.js desplegado en Railway. Necesario para gestionar usuarios desde el panel.</p>
+      <div class="field"><label>URL de la API <span class="hint">(ej: https://lloope-api.railway.app)</span></label><input type="text" id="sb_apiurl" value="${escAttr(cfg.apiUrl||'')}" placeholder="https://lloope-api.railway.app"></div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="sb_test"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Probar conexión</button>
+        <button class="btn btn-wood" id="sb_save">Guardar</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Método de acceso de clientes</h2>
+      <p class="lead">Cómo inician sesión tus clientes en "Mi cuenta" (index.html / cart.html). No afecta el login del panel admin, que siempre es con correo y contraseña.</p>
+      <div class="field">
+        <label>Método</label>
+        <select id="sb_authMethod">
+          <option value="password" ${cfg.authMethod!=='magiclink'&&cfg.authMethod!=='otp'?'selected':''}>Contraseña (correo + clave, de siempre)</option>
+          <option value="magiclink" ${cfg.authMethod==='magiclink'?'selected':''}>Magic Link (correo con botón para entrar)</option>
+          <option value="otp" ${cfg.authMethod==='otp'?'selected':''}>Código OTP (6 dígitos por correo)</option>
+        </select>
+      </div>
+      <div class="note" id="sb_authNote" style="display:none"></div>
+      <div class="form-actions"><button class="btn btn-wood" id="sb_authSave">Guardar método</button></div>
+    </div>
+    <div class="panel">
+      <h2>SQL de configuración inicial</h2>
+      <p class="lead">Se ejecuta una sola vez en el <b>SQL Editor</b> de Supabase, antes de pegar la URL/key arriba. Crea las tablas <code>profiles</code> y <code>orders</code> y las reglas de seguridad (RLS) que hacen que cada cliente solo vea sus propios pedidos.</p>
+      <textarea readonly style="min-height:260px;font-family:monospace;font-size:.78rem;white-space:pre">${esc(Lloope.SUPABASE_SETUP_SQL)}</textarea>
+      <p class="lead" style="margin-top:.8rem;margin-bottom:0">Después de correr el SQL: crea tu usuario admin en <b>Authentication → Users</b>, y en <b>Table Editor → profiles</b> cambia su <code>role</code> a <code>admin</code>. Detalle completo en PRODUCCION.md sección 5.</p>
+    </div>`;
+  $('#sb_save').onclick=()=>{
+    const url=$('#sb_url').value.trim(), anonKey=$('#sb_key').value.trim();
+    const apiUrl=$('#sb_apiurl').value.trim().replace(/\/$/,'');
+    const prev=Lloope.get('supabase');
+    save('supabase',{...prev,url,anonKey,apiUrl},'Integración guardada');
+    setTimeout(()=>go('integrations'),250);
+  };
+  $('#sb_test').onclick=async()=>{
+    const url=$('#sb_url').value.trim(), anonKey=$('#sb_key').value.trim();
+    if(!url||!anonKey){ toast('Completa la URL y la anon key primero'); return; }
+    Lloope.set('supabase',{...Lloope.get('supabase'),url,anonKey});
+    const client=Lloope.auth.client();
+    if(!client){ toast('No se pudo crear el cliente — revisa los valores'); return; }
+    const {error}=await client.from('profiles').select('id').limit(1);
+    toast(error ? ('Error: '+error.message) : '✔ Conexión exitosa');
+  };
+  const AUTH_NOTES={
+    password:'El cliente crea cuenta con correo y contraseña, como cualquier tienda tradicional. No depende del envío de correos, así que no choca con los límites de envío de Supabase.',
+    magiclink:'El cliente ingresa su correo y recibe un link para entrar con un clic — sin contraseña. Funciona con el correo gratuito de Supabase (límite bajo: ~2-4 correos/hora en todo el proyecto). Para volumen real, configura SMTP propio en Supabase → Authentication → Settings → SMTP.',
+    otp:'El cliente ingresa su correo y recibe un código de 6 dígitos para escribir en el sitio. ⚠️ Requiere SMTP personalizado en Supabase (Authentication → Email Templates → "Magic Link or OTP", con {{ .Token }} en el cuerpo) — sin eso, el correo gratuito de Supabase solo manda un link y el cliente no tendrá código que ingresar.'
+  };
+  const updateAuthNote=()=>{
+    const note=$('#sb_authNote'); note.style.display='block';
+    note.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><div>'+AUTH_NOTES[$('#sb_authMethod').value]+'</div>';
+  };
+  $('#sb_authMethod').onchange=updateAuthNote;
+  updateAuthNote();
+  $('#sb_authSave').onclick=()=>{
+    const prev=Lloope.get('supabase');
+    save('supabase',{...prev,authMethod:$('#sb_authMethod').value},'Método de acceso guardado');
+  };
+};
+
+/* ============ CONFIGURACIÓN RÁPIDA EN LA PANTALLA DE LOGIN ============
+   Primer arranque: si todavía no hay Supabase configurado, se puede pegar
+   la URL/anon key aquí mismo, sin necesidad de haber iniciado sesión (para
+   eso está esta pantalla — Ajustes → Integraciones sirve para editarlo
+   después, ya logueado). */
+function renderLoginSetup(){
+  const box=$('#loginDemo');
+  if(Lloope.auth.isConfigured()){
+    box.innerHTML='🔑 Inicia sesión con la cuenta de administrador que creaste en Supabase.';
+    return;
+  }
+  const cfg=Lloope.get('supabase');
+  box.innerHTML=`
+    <b style="display:block;margin-bottom:.5rem">Backend no configurado todavía</b>
+    <div style="font-size:.82rem;margin-bottom:.8rem">Pega la URL y la anon key de tu proyecto de Supabase (Settings → API). Si aún no creaste el proyecto ni las tablas, ve primero a PRODUCCION.md sección 5.</div>
+    <input type="text" id="setupUrl" placeholder="https://xxxx.supabase.co" value="${escAttr(cfg.url)}" style="width:100%;margin-bottom:.5rem;padding:.6em .8em;border-radius:8px;border:1.5px solid var(--line);font-size:.85rem">
+    <input type="text" id="setupKey" placeholder="anon public key" value="${escAttr(cfg.anonKey)}" style="width:100%;margin-bottom:.6rem;padding:.6em .8em;border-radius:8px;border:1.5px solid var(--line);font-size:.85rem">
+    <button type="button" class="btn btn-wood btn-sm btn-block" id="setupSave">Guardar y continuar</button>`;
+  $('#setupSave').onclick=()=>{
+    const url=$('#setupUrl').value.trim(), anonKey=$('#setupKey').value.trim();
+    if(!url||!anonKey){ toast('Completa la URL y la anon key.','warn'); return; }
+    Lloope.set('supabase',{url,anonKey});
+    location.reload();
+  };
+}
+
+/* ============ COMBOBOX DE SUGERENCIAS ============ */
+function createCombobox(inputEl, options){
+  if(!inputEl) return;
+  /* Re-invocable: si ya está init solo actualiza las opciones */
+  if(inputEl._cbInit){ if(inputEl._cbSetOpts) inputEl._cbSetOpts(options||[]); return; }
+  inputEl._cbInit=true;
+
+  const wrap=document.createElement('div');
+  wrap.className='combobox';
+  inputEl.parentNode.insertBefore(wrap,inputEl);
+  wrap.appendChild(inputEl);
+
+  const list=document.createElement('div');
+  list.className='cb-list';
+  wrap.appendChild(list);
+
+  let currentOpts=options||[];
+  let focusedIdx=-1;
+
+  inputEl._cbSetOpts=(opts)=>{ currentOpts=opts||[]; };
+
+  function renderList(filter){
+    const q=(filter||'').trim().toLowerCase();
+    const filtered=q?currentOpts.filter(o=>o.toLowerCase().includes(q)):currentOpts;
+    if(!filtered.length){
+      list.innerHTML='<div class="cb-opt cb-empty">Sin coincidencias</div>';
+    } else {
+      const re=q?new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'):null;
+      list.innerHTML=filtered.map(o=>{
+        const safe=esc(o);
+        return `<div class="cb-opt" data-val="${escAttr(o)}">${re?safe.replace(re,'<b>$1</b>'):safe}</div>`;
+      }).join('');
+    }
+    focusedIdx=-1;
+  }
+
+  function show(){ renderList(inputEl.value); list.classList.add('show'); }
+  function hide(){ list.classList.remove('show'); focusedIdx=-1; }
+
+  inputEl.addEventListener('focus', show);
+  inputEl.addEventListener('input', ()=>{ renderList(inputEl.value); list.classList.add('show'); });
+  inputEl.addEventListener('blur', ()=>setTimeout(hide,120));
+  inputEl.addEventListener('keydown', e=>{
+    if(!list.classList.contains('show')){ if(e.key==='ArrowDown'||e.key==='ArrowUp'){ show(); } return; }
+    const opts=[...list.querySelectorAll('.cb-opt[data-val]')];
+    if(e.key==='ArrowDown'){ e.preventDefault(); focusedIdx=Math.min(focusedIdx+1,opts.length-1); opts.forEach((o,i)=>o.classList.toggle('cb-focused',i===focusedIdx)); opts[focusedIdx]?.scrollIntoView({block:'nearest'}); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); focusedIdx=Math.max(focusedIdx-1,0); opts.forEach((o,i)=>o.classList.toggle('cb-focused',i===focusedIdx)); opts[focusedIdx]?.scrollIntoView({block:'nearest'}); }
+    else if(e.key==='Enter'&&focusedIdx>=0){ e.preventDefault(); inputEl.value=opts[focusedIdx].dataset.val; hide(); }
+    else if(e.key==='Escape'){ hide(); }
+  });
+  list.addEventListener('mousedown', e=>{
+    e.preventDefault();
+    const opt=e.target.closest('.cb-opt[data-val]'); if(!opt) return;
+    inputEl.value=opt.dataset.val; hide();
+  });
+}
+
+/* ============ DRAG & DROP UPLOADER ============ */
+function setupUploaders(){
+  $$('.uploader').forEach(uploader=>{
+    const input=uploader.querySelector('input[type="file"]');
+    if(!input || uploader.classList.contains('dd-ready')) return;
+    uploader.classList.add('dd-ready');
+
+    /* Mejorar visual con label + hint */
+    const label=document.createElement('label');
+    label.className='uploader-label';
+    label.textContent='Haz clic o arrastra imagen aquí';
+    label.style.cursor='pointer';
+
+    const hint=document.createElement('div');
+    hint.className='uploader-hint';
+    hint.textContent=input.getAttribute('multiple') ? 'PNG, JPG, WebP' : 'PNG, JPG, WebP';
+
+    uploader.insertBefore(label, input);
+    uploader.insertBefore(hint, input.nextSibling);
+
+    /* Drag & drop */
+    ['dragenter','dragover'].forEach(e=>uploader.addEventListener(e, ev=>{ ev.preventDefault(); ev.stopPropagation(); uploader.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(e=>uploader.addEventListener(e, ev=>{ ev.preventDefault(); ev.stopPropagation(); uploader.classList.remove('dragover'); }));
+
+    uploader.addEventListener('drop', ev=>{
+      const files=ev.dataTransfer.files;
+      if(files.length){ input.files=files; input.dispatchEvent(new Event('change')); }
+    });
+
+    /* Click para seleccionar */
+    label.addEventListener('click', ()=>input.click());
+    hint.addEventListener('click', ()=>input.click());
+
+    /* Validar y procesar */
+    input.addEventListener('change', ()=>{
+      if(input.files.length) label.textContent=`✓ ${input.files[0].name}`;
+    });
+  });
+}
+
+/* ============ ARRANQUE ============ */
+async function boot(){
+  renderLoginSetup();
+  if(!Lloope.auth.isConfigured()){
+    $('#loginScreen').style.display='grid';
+    return;
+  }
+  const session=await Lloope.auth.getSession();
+  if(session && await Lloope.auth.isAdmin()){ showApp(); }
+  else { $('#loginScreen').style.display='grid'; }
+}
+boot();
+</script>
+</body>
+</html>

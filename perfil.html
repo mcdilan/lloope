@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, follow" />
+<title>Mi Perfil · Lloope</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="icon" type="image/png" href="img/logo-mark.png" />
+<script src="lloope-data.js?v=3"></script>
+<script src="js/supabase.js?v=2.110.0"></script>
+<style>
+  :root{
+    --cream:#FBF6EE; --cream-2:#F4EADB; --sand:#EADBC6; --paper:#FFFDF9;
+    --espresso:#2B211A; --coffee:#5A4636; --wood:#B06B3E; --wood-dark:#8A4E2C;
+    --copper:#C0824B; --gold:#CAA25A; --sage:#7E8B69;
+    --line:rgba(43,33,26,.12);
+    --shadow-sm:0 6px 18px rgba(70,46,26,.08);
+    --r-lg:26px; --r-md:18px; --r-sm:12px;
+    --serif:"Fraunces",Georgia,serif; --sans:"Manrope",system-ui,sans-serif;
+    --maxw:1240px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--espresso);background:var(--cream);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.08}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  header{background:var(--paper);border-bottom:1px solid var(--line);padding:20px 0;position:sticky;top:0;z-index:40}
+  .header-content{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+  .brand{display:flex;align-items:center;gap:.7rem;font-family:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:1.1rem;font-weight:700}
+  .brand img{width:36px;height:36px}
+  .header-actions{display:flex;gap:1rem;align-items:center}
+  .header-actions a{color:var(--wood);font-weight:600}
+  main{padding:40px 0}
+  .btn{display:inline-flex;align-items:center;gap:.55em;justify-content:center;padding:.92em 1.7em;border-radius:100px;font-weight:700;font-size:.95rem;transition:all .25s;white-space:nowrap}
+  .btn-wood{background:linear-gradient(135deg,var(--wood),var(--wood-dark));color:#fff;box-shadow:0 14px 26px -12px rgba(138,78,44,.7)}
+  .btn-wood:hover{transform:translateY(-3px)}
+  .btn-ghost{background:transparent;color:var(--espresso);border:1.5px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--espresso)}
+  .btn-danger{background:#fbeaea;color:#c14a4a}
+  .btn-danger:hover{background:#c14a4a;color:#fff}
+  .card{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);border:1px solid var(--line);padding:28px;margin-bottom:24px}
+  .card h2{margin-bottom:20px}
+  .field{margin-bottom:1.2rem}
+  .field label{display:block;font-size:.85rem;font-weight:700;color:var(--coffee);margin-bottom:.4rem}
+  .field input,.field select{width:100%;padding:.75em 1em;border:1.5px solid var(--line);border-radius:var(--r-sm);font-size:.95rem;font-family:inherit}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--wood);box-shadow:0 0 0 4px rgba(176,107,62,.12)}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .form-actions{display:flex;gap:1rem;justify-content:flex-end;margin-top:2rem;flex-wrap:wrap}
+  .addresses-list{display:grid;gap:12px}
+  .address-item{background:var(--cream);border:1.5px solid var(--line);border-radius:var(--r-md);padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+  .address-content{flex:1}
+  .address-content b{display:block;margin-bottom:.4rem}
+  .address-content span{font-size:.9rem;color:var(--coffee);display:block;line-height:1.5}
+  .address-actions{display:flex;gap:.5rem}
+  .icon-btn{width:36px;height:36px;border-radius:8px;background:var(--paper);border:1px solid var(--line);display:grid;place-items:center;transition:all .25s}
+  .icon-btn:hover{transform:translateY(-2px);background:var(--wood);color:#fff;border-color:var(--wood)}
+  .loading,.error,.success{padding:16px;border-radius:var(--r-md);margin-bottom:1rem;font-size:.95rem}
+  .loading{background:#e6eef7;color:#3b6ea5}
+  .error{background:#fbeaea;color:#c14a4a}
+  .success{background:#e4f2ea;color:#2f9e6f}
+  .empty{text-align:center;padding:40px 20px;color:var(--coffee)}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,20,14,.55);z-index:100;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.active{display:flex}
+  .modal{background:var(--paper);border-radius:var(--r-lg);width:100%;max-width:500px;box-shadow:0 40px 80px -30px rgba(70,46,26,.4);padding:28px}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .modal-header h3{margin:0}
+  .close-btn{width:32px;height:32px;border-radius:8px;background:var(--cream);display:grid;place-items:center;cursor:pointer}
+  .field select{appearance:none;background:var(--cream) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%235A4636" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>') right .85em center/18px no-repeat;padding-right:2.6em;cursor:pointer}
+  .field select:disabled{opacity:.5;cursor:not-allowed}
+
+  /* ============ CUSTOM SELECT ============ */
+  .custom-select{position:relative;display:block}
+  .custom-select select{display:none}
+  .select-trigger{width:100%;padding:.75em 1em;border:1.5px solid var(--line);border-radius:var(--r-sm);background:var(--cream);font-family:inherit;font-size:.95rem;color:var(--espresso);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border .2s,background .2s;user-select:none}
+  .select-trigger:hover{border-color:var(--wood)}
+  .select-trigger:focus{outline:none;border-color:var(--wood);box-shadow:0 0 0 4px rgba(176,107,62,.12)}
+  .select-trigger.open{border-color:var(--wood);background:#fff;border-radius:var(--r-sm) var(--r-sm) 0 0}
+  .select-trigger.disabled{opacity:.5;cursor:not-allowed;background:var(--cream)}
+  .select-trigger::after{content:'▼';font-size:.7rem;color:var(--coffee);flex:none;margin-left:.6em;transition:transform .2s}
+  .select-trigger.open::after{transform:scaleY(-1)}
+  .select-options{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--wood);border-top:none;border-radius:0 0 var(--r-sm) var(--r-sm);max-height:240px;overflow-y:auto;z-index:100;box-shadow:0 8px 16px -4px rgba(0,0,0,.1);display:none}
+  .select-options.show{display:block}
+  .select-option{padding:.75em 1em;cursor:pointer;color:var(--espresso);font-size:.95rem;transition:background .15s;display:flex;align-items:center;gap:.6em}
+  .select-option:hover{background:var(--cream-2)}
+  .select-option.selected{background:rgba(176,107,62,.12);color:var(--wood);font-weight:600}
+  .select-option.selected::before{content:'✓';font-weight:700}
+  .select-option.disabled{opacity:.5;cursor:not-allowed;background:transparent}
+
+  .switch-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--cream);border:1.5px solid var(--line);border-radius:var(--r-md);padding:14px 16px;margin-top:1.4rem}
+  .switch-row .sw-label{font-size:.9rem;font-weight:700;color:var(--espresso)}
+  .switch-row .sw-hint{font-size:.78rem;color:var(--coffee);font-weight:400;margin-top:.15rem}
+  .switch{position:relative;display:inline-block;width:48px;height:28px;flex:none}
+  .switch input{opacity:0;width:0;height:0;position:absolute}
+  .switch .track{position:absolute;inset:0;background:var(--sand);border-radius:100px;transition:background .25s;cursor:pointer}
+  .switch .track::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .25s}
+  .switch input:checked+.track{background:var(--sage)}
+  .switch input:checked+.track::after{transform:translateX(20px)}
+  @media(max-width:768px){
+    .grid-2{grid-template-columns:1fr}
+    .address-item{flex-direction:column}
+    .address-actions{align-self:flex-start}
+  }
+
+  /* ============ TOAST ============ */
+  .toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,140%);z-index:300;background:var(--espresso);color:#fff;padding:.9em 1.4em;border-radius:100px;font-weight:600;font-size:.9rem;box-shadow:0 20px 40px -16px rgba(0,0,0,.4);display:flex;align-items:center;gap:.6em;transition:transform .4s cubic-bezier(.3,.8,.3,1)}
+  .toast.show{transform:translate(-50%,0)}
+  .toast svg{width:19px;height:19px;color:var(--sage);flex:none}
+  .toast.err svg{color:#e08a8a}
+
+  /* ============ CONFIRM MODAL ============ */
+  .confirm-ov{position:fixed;inset:0;background:rgba(30,20,14,.55);backdrop-filter:blur(3px);z-index:210;display:none;align-items:center;justify-content:center;padding:20px}
+  .confirm-ov.show{display:flex}
+  .confirm-box{background:var(--paper);border-radius:var(--r-lg);max-width:380px;width:100%;box-shadow:0 40px 80px -30px rgba(70,46,26,.4);padding:30px;text-align:center}
+  .confirm-box svg{width:44px;height:44px;color:var(--wood);margin:0 auto 1rem}
+  .confirm-box p{font-size:.98rem;margin-bottom:1.5rem}
+  .confirm-box .confirm-actions{display:flex;gap:.7rem}
+  .confirm-box .confirm-actions button{flex:1}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-content">
+    <a href="index.html" class="brand">
+      <img src="img/logo-mark.png" alt="Lloope"/>
+      Lloope
+    </a>
+    <div class="header-actions">
+      <a href="index.html">← Volver a tienda</a>
+      <button id="logoutBtn" class="btn btn-ghost" style="font-size:.9rem">Cerrar sesión</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="content"></div>
+  </div>
+</main>
+
+<!-- Modal para agregar/editar dirección -->
+<div class="modal-overlay" id="addressModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="addressModalTitle">Agregar dirección</h3>
+      <button class="close-btn" onclick="closeAddressModal()">✕</button>
+    </div>
+    <form id="addressForm">
+      <div class="field">
+        <label>Calle *</label>
+        <input type="text" id="addrStreet" required />
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Número *</label>
+          <input type="text" id="addrNumber" required />
+        </div>
+        <div class="field">
+          <label>Piso/Depto</label>
+          <input type="text" id="addrApartment" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Región *</label>
+          <select id="addrRegion" required>
+            <option value="">Selecciona una región</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Ciudad / Comuna *</label>
+          <select id="addrCity" required disabled>
+            <option value="">Primero elige región</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Código postal</label>
+        <input type="text" id="addrZip" />
+      </div>
+      <div class="switch-row">
+        <div>
+          <div class="sw-label">Dirección por defecto</div>
+          <div class="sw-hint">Se preseleccionará al pagar tu próxima compra</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="addrDefault" />
+          <span class="track"></span>
+        </label>
+      </div>
+      <div class="form-actions" style="margin-top:1.5rem;justify-content:flex-end">
+        <button type="button" class="btn btn-ghost" onclick="closeAddressModal()">Cancelar</button>
+        <button type="submit" class="btn btn-wood">Guardar dirección</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+  <span id="toastMsg">Guardado</span>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="confirm-ov" id="confirmOv">
+  <div class="confirm-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+    <p id="confirmMsg">¿Confirmas esta acción?</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmCancel">Cancelar</button>
+      <button class="btn btn-wood" id="confirmOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let currentEditingAddressId = null;
+
+/* ============ TOAST / CONFIRM (reemplazan alert()/confirm() nativos) ============ */
+let toastT;
+function toast(msg, isErr){
+  const t=$('toast');
+  $('toastMsg').textContent=msg;
+  t.classList.toggle('err', !!isErr);
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function showConfirm(message, onConfirm){
+  $('confirmMsg').textContent=message;
+  $('confirmOv').classList.add('show');
+  const ok=$('confirmOk'), cancel=$('confirmCancel');
+  const cleanup=()=>{ $('confirmOv').classList.remove('show'); ok.onclick=null; cancel.onclick=null; };
+  ok.onclick=()=>{ cleanup(); onConfirm(); };
+  cancel.onclick=cleanup;
+}
+
+/* Regiones y comunas de Chile (16 regiones, división administrativa vigente). */
+const REGIONES_CHILE = {
+  "Arica y Parinacota": ["Arica","Camarones","Putre","General Lagos"],
+  "Tarapacá": ["Iquique","Alto Hospicio","Pozo Almonte","Camiña","Colchane","Huara","Pica"],
+  "Antofagasta": ["Antofagasta","Mejillones","Sierra Gorda","Taltal","Calama","Ollagüe","San Pedro de Atacama","Tocopilla","María Elena"],
+  "Atacama": ["Copiapó","Caldera","Tierra Amarilla","Chañaral","Diego de Almagro","Vallenar","Alto del Carmen","Freirina","Huasco"],
+  "Coquimbo": ["La Serena","Coquimbo","Andacollo","La Higuera","Paiguano","Vicuña","Illapel","Canela","Los Vilos","Salamanca","Ovalle","Combarbalá","Monte Patria","Punitaqui","Río Hurtado"],
+  "Valparaíso": ["Valparaíso","Casablanca","Concón","Juan Fernández","Puchuncaví","Quintero","Viña del Mar","Isla de Pascua","Los Andes","Calle Larga","Rinconada","San Esteban","La Ligua","Cabildo","Papudo","Petorca","Zapallar","Quillota","Calera","Hijuelas","La Cruz","Nogales","San Antonio","Algarrobo","Cartagena","El Quisco","El Tabo","Santo Domingo","San Felipe","Catemu","Llaillay","Panquehue","Putaendo","Santa María","Quilpué","Limache","Olmué","Villa Alemana"],
+  "Metropolitana de Santiago": ["Santiago","Cerrillos","Cerro Navia","Conchalí","El Bosque","Estación Central","Huechuraba","Independencia","La Cisterna","La Florida","La Granja","La Pintana","La Reina","Las Condes","Lo Barnechea","Lo Espejo","Lo Prado","Macul","Maipú","Ñuñoa","Pedro Aguirre Cerda","Peñalolén","Providencia","Pudahuel","Quilicura","Quinta Normal","Recoleta","Renca","San Joaquín","San Miguel","San Ramón","Vitacura","Puente Alto","Pirque","San José de Maipo","Colina","Lampa","Til Til","San Bernardo","Buin","Calera de Tango","Paine","Melipilla","Alhué","Curacaví","María Pinto","San Pedro","Talagante","El Monte","Isla de Maipo","Padre Hurtado","Peñaflor"],
+  "Libertador General Bernardo O'Higgins": ["Rancagua","Codegua","Coinco","Coltauco","Doñihue","Graneros","Las Cabras","Machalí","Malloa","Mostazal","Olivar","Peumo","Pichidegua","Quinta de Tilcoco","Rengo","Requínoa","San Vicente","Pichilemu","La Estrella","Litueche","Marchihue","Navidad","Paredones","San Fernando","Chépica","Chimbarongo","Lolol","Nancagua","Palmilla","Peralillo","Placilla","Pumanque","Santa Cruz"],
+  "Maule": ["Talca","Constitución","Curepto","Empedrado","Maule","Pelarco","Pencahue","Río Claro","San Clemente","San Rafael","Cauquenes","Chanco","Pelluhue","Curicó","Hualañé","Licantén","Molina","Rauco","Romeral","Sagrada Familia","Teno","Vichuquén","Linares","Colbún","Longaví","Parral","Retiro","San Javier","Villa Alegre","Yerbas Buenas"],
+  "Ñuble": ["Chillán","Bulnes","Chillán Viejo","El Carmen","Pemuco","Pinto","Quillón","San Ignacio","Yungay","Quirihue","Cobquecura","Coelemu","Ninhue","Portezuelo","Ránquil","Treguaco","San Carlos","Coihueco","Ñiquén","San Fabián","San Nicolás"],
+  "Biobío": ["Concepción","Coronel","Chiguayante","Florida","Hualqui","Lota","Penco","San Pedro de la Paz","Santa Juana","Talcahuano","Tomé","Hualpén","Lebu","Arauco","Cañete","Contulmo","Curanilahue","Los Álamos","Tirúa","Los Ángeles","Antuco","Cabrero","Laja","Mulchén","Nacimiento","Negrete","Quilaco","Quilleco","San Rosendo","Santa Bárbara","Tucapel","Yumbel","Alto Biobío"],
+  "La Araucanía": ["Temuco","Carahue","Cunco","Curarrehue","Freire","Galvarino","Gorbea","Lautaro","Loncoche","Melipeuco","Nueva Imperial","Padre las Casas","Perquenco","Pitrufquén","Pucón","Saavedra","Teodoro Schmidt","Toltén","Vilcún","Villarrica","Cholchol","Angol","Collipulli","Curacautín","Ercilla","Lonquimay","Los Sauces","Lumaco","Purén","Renaico","Traiguén","Victoria"],
+  "Los Ríos": ["Valdivia","Corral","Lanco","Los Lagos","Máfil","Mariquina","Paillaco","Panguipulli","La Unión","Futrono","Lago Ranco","Río Bueno"],
+  "Los Lagos": ["Puerto Montt","Calbuco","Cochamó","Fresia","Frutillar","Los Muermos","Llanquihue","Maullín","Puerto Varas","Castro","Ancud","Chonchi","Curaco de Vélez","Dalcahue","Puqueldón","Queilén","Quellón","Quemchi","Quinchao","Osorno","Puerto Octay","Purranque","Puyehue","Río Negro","San Juan de la Costa","San Pablo","Chaitén","Futaleufú","Hualaihué","Palena"],
+  "Aysén": ["Coyhaique","Lago Verde","Aysén","Cisnes","Guaitecas","Cochrane","O'Higgins","Tortel","Chile Chico","Río Ibáñez"],
+  "Magallanes y de la Antártica Chilena": ["Punta Arenas","Laguna Blanca","Río Verde","San Gregorio","Cabo de Hornos","Antártica","Porvenir","Primavera","Timaukel","Natales","Torres del Paine"]
+};
+
+function populateRegionSelect(){
+  const sel=$('addrRegion');
+  sel.innerHTML='<option value="">Selecciona una región</option>'+Object.keys(REGIONES_CHILE).map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+}
+
+function populateCitySelect(region, selectedCity){
+  const citySel=$('addrCity');
+  const comunas=REGIONES_CHILE[region];
+  if(!comunas){
+    citySel.innerHTML='<option value="">Primero elige región</option>';
+    citySel.disabled=true;
+    createCustomSelect(citySel); /* re-sincroniza el dropdown visual (o lo crea, si es la primera vez) */
+    return;
+  }
+  citySel.disabled=false;
+  citySel.innerHTML='<option value="">Selecciona una ciudad/comuna</option>'+comunas.map(c=>`<option value="${esc(c)}" ${c===selectedCity?'selected':''}>${esc(c)}</option>`).join('');
+  createCustomSelect(citySel);
+}
+
+/* ============ CUSTOM SELECT DROPDOWN ============
+   Envuelve un <select> nativo en un dropdown propio. Es re-invocable: si el
+   select ya fue envuelto, en vez de crear todo de nuevo solo re-sincroniza
+   el trigger/lista con el estado actual (options/disabled/selectedIndex).
+   Esto es necesario porque cambiar .innerHTML, .disabled o .value por
+   código (como al cascadear región → ciudad, o al precargar una dirección
+   para editar) NO dispara un evento 'change' nativo, así que sin este
+   refresh explícito el dropdown visual queda desincronizado del <select>
+   real (se ve "pegado" en el valor/placeholder anterior). */
+function createCustomSelect(selectEl){
+  const refresh=()=>{
+    const trigger=selectEl._csTrigger, optionsList=selectEl._csOptions;
+    const selected=selectEl.options[selectEl.selectedIndex];
+    trigger.textContent=selected ? selected.textContent : 'Selecciona';
+    trigger.classList.toggle('disabled', selectEl.disabled);
+    optionsList.innerHTML='';
+    [...selectEl.options].forEach((opt,i)=>{
+      const div=document.createElement('div');
+      div.className='select-option'+(selectEl.selectedIndex===i?' selected':'')+(opt.disabled?' disabled':'');
+      div.textContent=opt.textContent;
+      div.onclick=()=>{
+        if(opt.disabled) return;
+        selectEl.selectedIndex=i;
+        selectEl.dispatchEvent(new Event('change'));
+        optionsList.classList.remove('show'); trigger.classList.remove('open');
+      };
+      optionsList.appendChild(div);
+    });
+  };
+
+  if(selectEl.classList.contains('custom-select-init')){ refresh(); return; }
+  selectEl.classList.add('custom-select-init');
+  selectEl.style.display='none';
+
+  const wrapper=document.createElement('div');
+  wrapper.className='custom-select';
+  selectEl.parentNode.insertBefore(wrapper, selectEl);
+  wrapper.appendChild(selectEl);
+
+  const trigger=document.createElement('div');
+  trigger.className='select-trigger';
+  const optionsList=document.createElement('div');
+  optionsList.className='select-options';
+  wrapper.insertBefore(trigger, selectEl);
+  wrapper.insertBefore(optionsList, selectEl);
+  selectEl._csTrigger=trigger; selectEl._csOptions=optionsList;
+
+  trigger.onclick=e=>{
+    e.stopPropagation();
+    if(selectEl.disabled) return;
+    const willOpen=!optionsList.classList.contains('show');
+    document.querySelectorAll('.select-options.show').forEach(o=>o.classList.remove('show'));
+    document.querySelectorAll('.select-trigger.open').forEach(t=>t.classList.remove('open'));
+    if(willOpen){ optionsList.classList.add('show'); trigger.classList.add('open'); }
+  };
+
+  selectEl.addEventListener('change', refresh);
+  refresh();
+}
+
+/* Cierra cualquier dropdown abierto al hacer click fuera (un solo listener
+   global, no uno por select). */
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.select-options.show').forEach(o=>o.classList.remove('show'));
+  document.querySelectorAll('.select-trigger.open').forEach(t=>t.classList.remove('open'));
+});
+
+function initCustomSelects(){
+  document.querySelectorAll('select').forEach(sel=>{ if(!sel.classList.contains('custom-select-init')) createCustomSelect(sel); });
+}
+
+async function init(){
+  if(!Lloope.auth.isConfigured()){
+    $('content').innerHTML = '<div class="card"><p class="error">Backend no configurado</p></div>';
+    return;
+  }
+  const session = await Lloope.auth.getSession();
+  if(!session){
+    window.location.href = 'index.html';
+    return;
+  }
+  renderProfile(session);
+}
+
+async function renderProfile(session){
+  const user = session.user;
+  const content = `
+    <div class="card">
+      <h2>Mi información</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" id="profName" value="${esc((user.user_metadata?.name || user.email || '').split('@')[0])}" />
+        </div>
+        <div class="field">
+          <label>Correo</label>
+          <input type="email" value="${esc(user.email)}" disabled />
+        </div>
+      </div>
+      <div class="field">
+        <label>Teléfono</label>
+        <input type="text" id="profPhone" value="${esc(user.user_metadata?.phone || '')}" placeholder="+56 9 ..." />
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-wood" onclick="saveName()">Guardar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="margin:0">Direcciones de despacho</h2>
+        <button class="btn btn-wood" style="font-size:.9rem" onclick="openAddressModal()">+ Agregar dirección</button>
+      </div>
+      <div id="addressesList"></div>
+    </div>
+  `;
+  $('content').innerHTML = content;
+  loadAddresses();
+
+  $('logoutBtn').onclick = async () => {
+    await Lloope.auth.signOut();
+    window.location.href = 'index.html';
+  };
+}
+
+function esc(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+async function saveName(){
+  const name = $('profName').value.trim();
+  const phone = $('profPhone').value.trim();
+  if(!name) return toast('Ingresa un nombre', true);
+  const {error} = await Lloope.auth.updateUserMeta({name, phone});
+  if(error) toast('Error: ' + error.message, true);
+  else toast('Datos guardados');
+}
+
+async function loadAddresses(){
+  const session = await Lloope.auth.getSession();
+  const c = Lloope.auth.client();
+  const {data, error} = await c.from('addresses').select('*').eq('user_id', session.user.id).order('is_default', {ascending:false});
+
+  const list = $('addressesList');
+  if(!data?.length){
+    list.innerHTML = '<div class="empty">No tienes direcciones guardadas<br><small>Agrega una para facilitar tus compras</small></div>';
+    return;
+  }
+
+  list.innerHTML = data.map(addr => `
+    <div class="address-item">
+      <div class="address-content">
+        <b>${esc(addr.street)} ${esc(addr.number)}${addr.apartment ? ', ' + esc(addr.apartment) : ''}</b>
+        <span>${addr.region ? esc(addr.region) + ', ' : ''}${esc(addr.city)}${addr.zip_code ? ' · ' + esc(addr.zip_code) : ''}</span>
+        ${addr.is_default ? '<span style="color:var(--sage);font-weight:600;margin-top:.4rem">✓ Por defecto</span>' : ''}
+      </div>
+      <div class="address-actions">
+        <button class="icon-btn" title="Editar" onclick="editAddress('${addr.id}')">✎</button>
+        <button class="icon-btn" title="Eliminar" onclick="deleteAddress('${addr.id}')" style="color:#c14a4a">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddressModal(id = null){
+  currentEditingAddressId = id;
+  populateRegionSelect();
+  if(id){
+    $('addressModalTitle').textContent = 'Editar dirección';
+    loadAddressToForm(id);
+  } else {
+    $('addressModalTitle').textContent = 'Agregar dirección';
+    $('addressForm').reset();
+    populateCitySelect('');
+  }
+  $('addressModal').classList.add('active');
+  setTimeout(initCustomSelects, 50);
+}
+
+$('addrRegion').addEventListener('change', ()=>{
+  populateCitySelect($('addrRegion').value);
+});
+
+function closeAddressModal(){
+  $('addressModal').classList.remove('active');
+  currentEditingAddressId = null;
+}
+
+async function loadAddressToForm(id){
+  const session = await Lloope.auth.getSession();
+  const c = Lloope.auth.client();
+  const {data} = await c.from('addresses').select('*').eq('id', id).single();
+  if(data){
+    $('addrStreet').value = data.street || '';
+    $('addrNumber').value = data.number || '';
+    $('addrApartment').value = data.apartment || '';
+    $('addrRegion').value = data.region || '';
+    createCustomSelect($('addrRegion')); /* set .value no dispara 'change' — resincroniza el trigger visual */
+    populateCitySelect(data.region || '', data.city || '');
+    $('addrZip').value = data.zip_code || '';
+    $('addrDefault').checked = data.is_default || false;
+  }
+}
+
+async function editAddress(id){
+  openAddressModal(id);
+}
+
+async function deleteAddress(id){
+  showConfirm('¿Eliminar esta dirección?', async () => {
+    const c = Lloope.auth.client();
+    const {error} = await c.from('addresses').delete().eq('id', id);
+    if(error) toast('Error: ' + error.message, true);
+    else { toast('Dirección eliminada'); loadAddresses(); }
+  });
+}
+
+$('addressForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const session = await Lloope.auth.getSession();
+  const c = Lloope.auth.client();
+  const addr = {
+    street: $('addrStreet').value,
+    number: $('addrNumber').value,
+    apartment: $('addrApartment').value || null,
+    city: $('addrCity').value,
+    region: $('addrRegion').value || null,
+    zip_code: $('addrZip').value || null,
+    is_default: $('addrDefault').checked
+  };
+
+  let error;
+  if(currentEditingAddressId){
+    ({error} = await c.from('addresses').update(addr).eq('id', currentEditingAddressId));
+  } else {
+    ({error} = await c.from('addresses').insert({...addr, user_id: session.user.id}));
+  }
+
+  if(error) toast('Error: ' + error.message, true);
+  else { toast('Dirección guardada'); closeAddressModal(); loadAddresses(); }
+});
+
+init();
+</script>
+</body>
+</html>

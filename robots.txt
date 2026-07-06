@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /data/
+Disallow: /lloope-data.js
+
+Sitemap: https://lloope.cl/sitemap.xml
