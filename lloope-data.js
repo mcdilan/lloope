@@ -120,6 +120,12 @@ create policy "Admin ve todos los pedidos" on orders
 create policy "Admin actualiza cualquier pedido" on orders
   for update using (exists (select 1 from profiles where id = auth.uid() and role in ('admin','sysadmin')));`;
 
+const LLOOPE_MP_MIGRATION_SQL = `-- Mercado Pago: columnas extra en orders
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS external_reference text;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS mp_payment_id text;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS updated_at timestamptz;
+CREATE INDEX IF NOT EXISTS idx_orders_external_ref ON orders (external_reference);`;
+
 /* ---------------------------------------------------------------------------
    DATOS DE EJEMPLO (semilla). Si no hay nada en localStorage se cargan estos.
 --------------------------------------------------------------------------- */
@@ -282,7 +288,8 @@ const LLOOPE_DEFAULTS = {
   payment: {
     methods: { transfer:true, whatsapp:true, webpay:false, mercadopago:false, flow:false, other:false },
     transfer: { bank:"Banco Estado", accountType:"Cuenta Vista", accountNumber:"00012345678", holder:"Lloope SpA", rut:"77.123.456-7", email:"pagos@lloope.cl" },
-    online: { provider:"Webpay", mode:"test", publicKey:"", secretKey:"", commerceCode:"", returnUrl:"", confirmUrl:"", active:false }
+    online: { provider:"Webpay", mode:"test", publicKey:"", secretKey:"", commerceCode:"", returnUrl:"", confirmUrl:"", active:false },
+    mercadoPago: { publicKey:"", mode:"test" }
   },
 
   orders: [
@@ -553,6 +560,7 @@ const Lloope = {
   DEFAULTS: LLOOPE_DEFAULTS,
   ORDER_STATES: LLOOPE_ORDER_STATES,
   SUPABASE_SETUP_SQL: LLOOPE_SUPABASE_SQL,
+  MP_MIGRATION_SQL: LLOOPE_MP_MIGRATION_SQL,
   auth: LloopeAuth,
 
   /* Clase CSS del badge de estado de un pedido (usado por admin.html y por

@@ -1248,28 +1248,50 @@ VIEWS.payment=(c)=>{
       </div>
     </div>
     <div class="panel">
-      <h2>Pago online (campos simulados)</h2><p class="lead">Configuración de referencia. En producción estas llaves viven en variables de entorno del backend.</p>
+      <h2>Mercado Pago — Checkout Pro</h2>
+      <p class="lead">El cliente arma el carrito aquí y al pagar se redirige a Mercado Pago. El <b>Access Token</b> (secreto) se configura en las variables de entorno del backend (<code>MP_ACCESS_TOKEN</code> en Railway), <b>nunca</b> en este panel.</p>
       <div class="grid-2">
-        <div class="field"><label>Proveedor de pago</label><input type="text" id="on_prov" value="${escAttr(k.online.provider)}"></div>
-        <div class="field"><label>Modo</label><select id="on_mode"><option ${k.online.mode==='test'?'selected':''}>test</option><option ${k.online.mode==='production'?'selected':''}>production</option></select></div>
-        <div class="field"><label>Public key</label><input type="text" id="on_pub" value="${escAttr(k.online.publicKey)}" placeholder="pk_..."></div>
-        <div class="field"><label>Secret key <span class="hint">(no exponer en real)</span></label><input type="password" id="on_sec" value="${escAttr(k.online.secretKey)}" placeholder="sk_..."></div>
-        <div class="field"><label>Código de comercio</label><input type="text" id="on_com" value="${escAttr(k.online.commerceCode)}"></div>
-        <div class="field"><label>Estado</label><select id="on_active"><option value="true" ${k.online.active?'selected':''}>Activo</option><option value="false" ${!k.online.active?'selected':''}>Inactivo</option></select></div>
-        <div class="field"><label>URL de retorno</label><input type="url" id="on_ret" value="${escAttr(k.online.returnUrl)}" placeholder="https://..."></div>
-        <div class="field"><label>URL de confirmación</label><input type="url" id="on_conf" value="${escAttr(k.online.confirmUrl)}" placeholder="https://..."></div>
+        <div class="field"><label>Public Key <span class="hint">(de <a href="https://www.mercadopago.cl/developers/panel/app" target="_blank" rel="noopener">Developers</a>)</span></label><input type="text" id="mp_pub" value="${escAttr((k.mercadoPago||{}).publicKey||'')}" placeholder="APP_USR-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div>
+        <div class="field"><label>Modo</label><select id="mp_mode"><option value="test" ${(k.mercadoPago||{}).mode!=='production'?'selected':''}>Pruebas (sandbox)</option><option value="production" ${(k.mercadoPago||{}).mode==='production'?'selected':''}>Producción</option></select></div>
+      </div>
+      <div class="note" style="margin-top:.5rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div>
+          <b>Para activar Mercado Pago:</b><br>
+          1. Crea una aplicación en <a href="https://www.mercadopago.cl/developers/panel/app" target="_blank" rel="noopener">Mercado Pago Developers</a><br>
+          2. Copia la <b>Public Key</b> aquí arriba<br>
+          3. Copia el <b>Access Token</b> en la variable <code>MP_ACCESS_TOKEN</code> del backend (Railway)<br>
+          4. Activa el toggle de "Mercado Pago" en la sección de medios de pago arriba<br>
+          5. Publica los cambios para que los clientes vean el botón de pago
+        </div>
+      </div>
+      <div class="note warn" style="margin-top:.5rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        <div><b>Modo pruebas:</b> usa cuentas y tarjetas de prueba de Mercado Pago. Para simular un pago aprobado, ingresa como titular <code>APRO</code>; para rechazado <code>OTHE</code>; para pendiente <code>CONT</code>.</div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-ghost" id="pay_test"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Probar configuración</button>
+        <button class="btn btn-ghost" id="pay_test"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Probar conexión</button>
         <button class="btn btn-wood" id="pay_save">Guardar pagos</button>
       </div>
     </div>`;
-  $('#pay_test').onclick=()=>{ toast('✔ Configuración simulada correcta (modo '+$('#on_mode').value+'). En producción se valida contra el proveedor.'); };
+  $('#pay_test').onclick=async()=>{
+    const apiUrl=getApiUrl();
+    if(!apiUrl){ toast('Configura la URL de lloope-api en Integraciones primero',true); return; }
+    try{
+      const r=await fetch(apiUrl+'/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:[],payer:{}})});
+      const d=await r.json();
+      if(r.status===503) toast('Backend responde pero MP_ACCESS_TOKEN no está configurado en Railway. Paso 3 pendiente.',true);
+      else if(r.status===400) toast('✔ Backend conectado y Mercado Pago configurado (modo '+($('#mp_mode').value)+')');
+      else toast('Respuesta inesperada: '+d.error,true);
+    }catch(e){ toast('No se pudo conectar al backend: '+e.message,true); }
+  };
   $('#pay_save').onclick=()=>{
+    const prev=Lloope.get('payment');
     save('payment',{
       methods:{ transfer:$('#pm_transfer').checked, whatsapp:$('#pm_whatsapp').checked, webpay:$('#pm_webpay').checked, mercadopago:$('#pm_mercadopago').checked, flow:$('#pm_flow').checked, other:$('#pm_other').checked },
       transfer:{ bank:$('#tr_bank').value, accountType:$('#tr_type').value, accountNumber:$('#tr_num').value, holder:$('#tr_holder').value, rut:$('#tr_rut').value, email:$('#tr_email').value },
-      online:{ provider:$('#on_prov').value, mode:$('#on_mode').value, publicKey:$('#on_pub').value, secretKey:$('#on_sec').value, commerceCode:$('#on_com').value, returnUrl:$('#on_ret').value, confirmUrl:$('#on_conf').value, active:$('#on_active').value==='true' }
+      mercadoPago:{ publicKey:$('#mp_pub').value.trim(), mode:$('#mp_mode').value },
+      online: prev.online||{}
     },'Pagos actualizados');
   };
 };
@@ -1949,6 +1971,11 @@ VIEWS.integrations=(c)=>{
       <p class="lead">Se ejecuta una sola vez en el <b>SQL Editor</b> de Supabase, antes de pegar la URL/key arriba. Crea las tablas <code>profiles</code> y <code>orders</code> y las reglas de seguridad (RLS) que hacen que cada cliente solo vea sus propios pedidos.</p>
       <textarea readonly style="min-height:260px;font-family:monospace;font-size:.78rem;white-space:pre">${esc(Lloope.SUPABASE_SETUP_SQL)}</textarea>
       <p class="lead" style="margin-top:.8rem;margin-bottom:0">Después de correr el SQL: crea tu usuario admin en <b>Authentication → Users</b>, y en <b>Table Editor → profiles</b> cambia su <code>role</code> a <code>admin</code>. Detalle completo en PRODUCCION.md sección 5.</p>
+    </div>
+    <div class="panel">
+      <h2>SQL para Mercado Pago</h2>
+      <p class="lead">Ejecuta este SQL en Supabase <b>solo si</b> vas a activar Mercado Pago. Agrega las columnas necesarias para registrar los pagos en la tabla <code>orders</code>.</p>
+      <textarea readonly style="min-height:120px;font-family:monospace;font-size:.78rem;white-space:pre">${esc(Lloope.MP_MIGRATION_SQL)}</textarea>
     </div>`;
   $('#sb_save').onclick=()=>{
     const url=$('#sb_url').value.trim(), anonKey=$('#sb_key').value.trim();

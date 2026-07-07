@@ -36,6 +36,8 @@
   .btn:hover{transform:translateY(-2px)}
   .btn-wood{background:linear-gradient(135deg,var(--wood),var(--wood-dark));color:#fff;box-shadow:0 14px 26px -12px rgba(138,78,44,.7)}
   .btn-wa{background:#25D366;color:#0b3d1f}
+  .btn-mp{background:#009ee3;color:#fff;margin-top:8px}
+  .btn-mp:hover{background:#007bbf}
   .btn-ghost{background:var(--paper);color:var(--espresso);border:1.5px solid var(--line)}
   .btn-block{width:100%}
   .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
@@ -477,12 +479,13 @@ function initCustomSelects(){
   document.querySelectorAll('select').forEach(sel=>createCustomSelect(sel));
 }
 
-let contact={}, cartCfg={}, coupons=[];
+let contact={}, cartCfg={}, coupons=[], paymentCfg={};
 let currentSession=null; // sesión Supabase activa (null si invitado o no configurado)
 let products=[];
 let cart=Lloope.getCart();
 let appliedCoupon=null;
 let WHATSAPP='';
+let API_URL=''; // URL de lloope_api (Railway), vacía si no está configurado
 const waLink = msg => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
 const effPrice = p => Lloope.effPrice(p);
 
@@ -622,6 +625,10 @@ function render(){
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Z"/></svg>
             Finalizar compra por WhatsApp
           </button>
+          <button class="btn btn-mp btn-block" id="payMpBtn" style="display:none">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2ZM3 10h18M7 15h4"/></svg>
+            Pagar con Mercado Pago
+          </button>
         </div>
       </div>
       <div class="cart-summary-col">
@@ -683,6 +690,9 @@ function render(){
     $('#pickupOtherFields').style.display = $('#ck_pickup_other').checked ? 'block' : 'none';
   };
   $('#finishBtn').onclick=finishCheckout;
+  const mpEnabled=paymentCfg.methods&&paymentCfg.methods.mercadopago&&API_URL;
+  const mpBtn=$('#payMpBtn');
+  if(mpBtn){ mpBtn.style.display=mpEnabled?'':'none'; mpBtn.onclick=payWithMercadoPago; }
 
   loadAddressesForCheckout();
   renderSummaryTotals(subtotalOf(items));
@@ -755,6 +765,37 @@ async function finishCheckout(){
     invoiceData={ rut, rz, giro:$('#inv_giro').value.trim(), addr:$('#inv_addr').value.trim() };
   }
   const notes=$('#ck_notes').value.trim();
+
+  // #2 Validación de stock en tiempo real contra lloope_api
+  if(API_URL){
+    const btn=$('#finishBtn');
+    btn.disabled=true; btn.textContent='Verificando stock…';
+    try{
+      const r=await fetch(API_URL+'/api/products',{headers:{Accept:'application/json'}}).then(x=>x.json());
+      if(r.products){
+        const errs=[]; let changed=false;
+        for(const item of items){
+          const ap=r.products.find(p=>String(p.id)===String(item.p.id));
+          if(!ap||ap.quote) continue;
+          const avail=Math.max(0,Number(ap.stock)||0);
+          if(avail===0){
+            errs.push(`"${item.p.name}" está agotado`);
+            cart=cart.filter(c=>c.id!==item.p.id); changed=true;
+          } else if(item.qty>avail){
+            errs.push(`"${item.p.name}": solo ${avail} disponible${avail!==1?'s':''} (tenías ${item.qty})`);
+            const c=cart.find(x=>x.id===item.p.id); if(c){c.qty=avail; changed=true;}
+          }
+        }
+        if(errs.length){
+          if(changed) Lloope.setCart(cart);
+          render();
+          toast('Stock insuficiente — se ajustó tu carrito. Revisa y reintenta.',true);
+          return;
+        }
+      }
+    } catch(e){ /* API no disponible — continúa sin validación */ }
+    if($('#finishBtn')){ $('#finishBtn').disabled=false; $('#finishBtn').innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.1-1.3A10 10 0 1 0 12 2Z"/></svg> Finalizar compra por WhatsApp`; }
+  }
 
   const subtotal=subtotalOf(items);
   const discount=computeDiscount(subtotal);
@@ -1088,13 +1129,83 @@ function initSteps(){
   onScroll();
 }
 
+/* ---- Pagar con Mercado Pago ---- */
+async function payWithMercadoPago(){
+  const items=lineItems();
+  if(items.length===0) return;
+  const name=$('#ck_name').value.trim(), email=$('#ck_email').value.trim(), phone=$('#ck_phone').value.trim();
+  if(!name||!email){ toast('Completa tu nombre y correo para continuar.',true); return; }
+  if(!$('#ck_consent').checked){ toast('Debes aceptar los Términos y la Política de Privacidad para continuar.',true); return; }
+
+  const btn=$('#payMpBtn');
+  btn.disabled=true; btn.textContent='Conectando con Mercado Pago…';
+
+  const subtotal=subtotalOf(items);
+  const discount=computeDiscount(subtotal);
+  const ship=Number(cartCfg.shippingCost)||0;
+
+  const body={
+    items: items.map(i=>({
+      id: String(i.p.id),
+      title: i.p.name,
+      quantity: i.qty,
+      unit_price: i.p.quote ? 0 : effPrice(i.p)
+    })).filter(i=>i.unit_price>0),
+    payer: { name, email },
+    shipping_cost: ship,
+    coupon_discount: discount
+  };
+
+  try{
+    const r=await fetch(API_URL+'/api/checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    const d=await r.json();
+    if(!r.ok){
+      if(d.details){ toast(d.details.join('. '),true); render(); }
+      else toast(d.error||'Error al crear el pago',true);
+      btn.disabled=false; btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2ZM3 10h18M7 15h4"/></svg> Pagar con Mercado Pago';
+      return;
+    }
+
+    if(currentSession){ Lloope.auth.updateUserMeta({name,phone}); }
+    else if($('#ck_save')&&$('#ck_save').checked){ Lloope.setProfile({name,email,phone}); }
+    if(appliedCoupon&&appliedCoupon.singleUse) Lloope.markCouponUsedLocally(appliedCoupon.code);
+
+    const mp=paymentCfg.mercadoPago||{};
+    const url=(mp.mode==='production') ? d.init_point : d.sandbox_init_point;
+    window.location.href=url;
+  }catch(e){
+    toast('No se pudo conectar al servidor de pagos: '+e.message,true);
+    btn.disabled=false; btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2ZM3 10h18M7 15h4"/></svg> Pagar con Mercado Pago';
+  }
+}
+
+/* ---- Validación de stock ---- */
+function validateAndFixCart(prods){
+  const removed=[], reduced=[];
+  cart=cart.filter(item=>{
+    const p=prods.find(x=>x.id===item.id);
+    if(!p || p.quote) return true;
+    const avail=Math.max(0,Number(p.stock)||0);
+    if(!p.active||avail===0){ removed.push(p.name||item.id); return false; }
+    if(item.qty>avail){ reduced.push({name:p.name,was:item.qty,now:avail}); item.qty=avail; }
+    return true;
+  });
+  if(removed.length||reduced.length) Lloope.setCart(cart);
+  return {removed, reduced};
+}
+
 /* ---- Arranque ---- */
 async function boot(){
   const DATA=await Lloope.loadPublicData();
   contact=DATA.contact; cartCfg=DATA.cart; coupons=DATA.coupons||[];
-  products=DATA.products||[];
-  Lloope.auth.init(DATA.supabase); // config publicada por el admin, no la de este navegador
+  products=DATA.products||[]; paymentCfg=DATA.payment||{};
+  Lloope.auth.init(DATA.supabase);
   WHATSAPP=String(contact.whatsapp||'').replace(/\D/g,'');
+  API_URL=(DATA.supabase?.apiUrl||'').replace(/\/$/,'');
 
   /* Si el cliente vuelve desde el magic link o desde el link de "olvidé mi
      contraseña" que le enviamos por correo, Supabase deja la sesión
@@ -1114,7 +1225,11 @@ async function boot(){
   if(logo) $('.brand-logo').src=logo;
   document.title='Tu carrito · '+(settings.storeName||'Lloope');
   if(Lloope.auth.isConfigured()) currentSession=await Lloope.auth.getSession();
+  const _adj=validateAndFixCart(products);
   render();
+  if(_adj.removed.length||_adj.reduced.length){
+    setTimeout(()=>toast('Tu carrito fue ajustado por cambios de stock. Revisa las cantidades antes de continuar.',true),350);
+  }
 }
 
 /* Se llama tras iniciar/cerrar sesión desde el modal "Mi cuenta" para que el
