@@ -303,8 +303,9 @@
   .corp .eyebrow::before{background:var(--gold)}
   .corp h2{color:#fff;font-size:clamp(1.8rem,3.6vw,2.9rem)}
   .corp-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+  .corp-copy,.corp-imgs{min-width:0}
   .corp-copy p{color:#d8c7b2;margin:1rem 0 1.6rem}
-  .corp-logos-wrap{margin-top:1.4rem;overflow-x:clip;padding-top:52px;margin-top:calc(1.4rem - 52px);-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent)}
+  .corp-logos-wrap{margin-top:1.4rem;overflow:hidden;padding-top:52px;margin-top:calc(1.4rem - 52px);-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent)}
   .corp-logos-track{display:flex;gap:14px;width:max-content;align-items:center;animation:corpScroll 26s linear infinite}
   .corp-logos-wrap:hover .corp-logos-track{animation-play-state:paused}
   @keyframes corpScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
