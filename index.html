@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Lloope · Diseños en madera con corte CNC</title>
 <meta name="description" content="Lloope — emprendimiento chileno de decoración y productos en madera hechos con máquina CNC. Tablas personalizadas, bandejas, letreros conmemorativos, regalos y diseños a pedido." />
 <meta name="robots" content="index, follow" />
@@ -1329,7 +1329,7 @@ function openProductModal(id){
   $('#pmImage').src=allImgs[0]||p.image; $('#pmImage').alt=p.name;
   const thumbs=$('#pmThumbs');
   if(allImgs.length>1){
-    thumbs.innerHTML=allImgs.map((src,i)=>'<div class="pm-thumb'+(i===0?' active':'')+'" onclick="pmSetImg(\''+src.replace(/'/g,"\\'")+'\')" ><img src="'+src+'" alt="" loading="lazy"></div>').join('');
+    thumbs.innerHTML=allImgs.map((src,i)=>'<div class="pm-thumb'+(i===0?' active':'')+'" data-src="'+esc(src)+'" onclick="pmSetImg(this.dataset.src)"><img src="'+esc(src)+'" alt="" loading="lazy"></div>').join('');
     thumbs.style.display='flex';
   } else { thumbs.innerHTML=''; thumbs.style.display='none'; }
   const tagEl=$('#pmTag'); tagEl.textContent=p.custom?'Personalizable':p.cat; tagEl.className='tag'+(p.custom?' custom':'');
