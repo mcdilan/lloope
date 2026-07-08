@@ -495,7 +495,11 @@
   .exit-consent{display:flex;align-items:flex-start;gap:.5rem;font-size:.78rem;color:var(--coffee);line-height:1.4}
   .exit-consent input{margin-top:.2em;flex:none}
   .exit-consent a{text-decoration:underline}
-  .exit-code{font-family:var(--serif);font-size:2.1rem;font-weight:700;letter-spacing:.04em;text-align:center;background:var(--cream-2);border:2px dashed var(--wood);border-radius:var(--r-md);padding:.65em;color:var(--wood-dark)}
+  .exit-code{display:flex;align-items:center;justify-content:center;gap:.5em;font-family:var(--serif);font-size:1.9rem;font-weight:700;letter-spacing:.04em;text-align:center;background:var(--cream-2);border:2px dashed var(--wood);border-radius:var(--r-md);padding:.55em .7em;color:var(--wood-dark);cursor:pointer;transition:background .15s,transform .1s;user-select:none}
+  .exit-code:hover{background:#efe0c8}
+  .exit-code:active{transform:scale(.98)}
+  .exit-code .copy-icon{width:22px;height:22px;flex:none;color:var(--wood)}
+  .exit-code.copied .copy-icon{color:var(--sage)}
   .exit-hint{text-align:center;font-size:.85rem;margin:.9rem 0 0 !important}
   .exit-terms{text-align:center;font-size:.76rem;color:var(--coffee);line-height:1.4;margin:.6rem 0 1.5rem !important}
   .exit-dismiss{display:block;margin:.4rem auto 0;font-size:.82rem;color:var(--coffee);text-decoration:underline;background:none;border:none;cursor:pointer;font-family:inherit}
@@ -954,8 +958,11 @@
         <button type="button" id="exitDismiss" class="exit-dismiss">No, gracias</button>
       </form>
       <div id="exitRevealed" style="display:none">
-        <div class="exit-code" id="exitCode">BIENVENIDO10</div>
-        <p class="exit-hint">Cópialo y pégalo en el carrito al momento de pagar.</p>
+        <div class="exit-code" id="exitCode" role="button" tabindex="0" title="Copiar código">
+          <span id="exitCodeText">BIENVENIDO10</span>
+          <svg class="copy-icon" id="exitCopyIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </div>
+        <p class="exit-hint" id="exitHint">Haz clic en el código para copiarlo.</p>
         <p class="exit-terms" id="exitTerms"></p>
         <a href="#catalogo" class="btn btn-wood btn-block" id="exitGoCatalog">Ir al catálogo</a>
       </div>
@@ -1612,7 +1619,9 @@ function maybeShowExitPopup(){
   $('#exitTitle').textContent=cfg.title||'¡Espera! Un regalo para ti';
   $('#exitText').textContent=cfg.text||'';
   $('#exitBadge').textContent=discount+'% OFF';
-  $('#exitCode').textContent=(cfg.couponCode||'BIENVENIDO')+discount;
+  $('#exitCodeText').textContent=(cfg.couponCode||'BIENVENIDO')+discount;
+  $('#exitCode').classList.remove('copied');
+  $('#exitHint').textContent='Haz clic en el código para copiarlo.';
   $('#exitTerms').textContent=cfg.terms||'';
   const media=$('#exitMedia');
   if(cfg.image){ media.style.backgroundImage=`url('${cfg.image}')`; media.style.backgroundSize='cover'; media.style.backgroundPosition='center'; }
@@ -1620,6 +1629,20 @@ function maybeShowExitPopup(){
   $('#exitOverlay').classList.add('open'); document.body.style.overflow='hidden';
 }
 function closeExitPopup(){ $('#exitOverlay').classList.remove('open'); document.body.style.overflow=''; }
+async function copyExitCode(){
+  const code=$('#exitCodeText').textContent;
+  try{
+    if(navigator.clipboard) await navigator.clipboard.writeText(code);
+    else{
+      const ta=document.createElement('textarea');
+      ta.value=code; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    }
+    $('#exitCode').classList.add('copied');
+    $('#exitHint').textContent='¡Copiado! Pégalo en el carrito al momento de pagar.';
+    showToast('Código copiado');
+  }catch(e){ showToast('No se pudo copiar. Selecciónalo manualmente.'); }
+}
 
 /* ============ EVENTOS (una sola vez) ============ */
 function bindEvents(){
@@ -1634,6 +1657,8 @@ function bindEvents(){
   $('#exitClose').onclick=closeExitPopup;
   $('#exitDismiss').onclick=closeExitPopup;
   $('#exitOverlay').addEventListener('click',e=>{ if(e.target===$('#exitOverlay')) closeExitPopup(); });
+  $('#exitCode').addEventListener('click',copyExitCode);
+  $('#exitCode').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); copyExitCode(); } });
   $('#exitForm').addEventListener('submit',e=>{
     e.preventDefault();
     const email=$('#exitEmail').value.trim();
