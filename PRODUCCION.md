@@ -161,16 +161,22 @@ conectar el backend — no queda un login roto ni una contraseña hardcodeada vi
    usarás para entrar a `/admin.html`).
 4. En **Table Editor → profiles**, busca la fila con el `id` de ese usuario y cambia su
    columna `role` de `customer` a `admin`.
-5. Copia el **Project URL** y la **anon public key** (**Settings → API**). No los pegues en
-   ningún archivo de código: ábrelos en `/admin.html` (la pantalla de login te deja pegarlos
-   ahí mismo la primera vez) o, ya logueado, en **Ajustes → Integraciones**. La anon key es
-   segura de usar en el navegador — la protección real la dan las políticas RLS del paso 2;
-   nunca uses la `service_role` key en el frontend.
-6. Guarda y presiona **"Publicar cambios"** en el panel para que estos datos también lleguen
-   a `data/store.json` (igual que el resto del contenido) — sin publicar, solo tu propio
-   navegador vería la configuración. Ya puedes iniciar sesión en `/admin.html` con el usuario
-   del paso 3, y tus clientes pueden crear cuenta y ver sus
-   pedidos desde "Mi cuenta".
+5. Copia el **Project URL** y la **anon public key** (**Settings → API**). No se pegan en el
+   panel admin ni en ningún archivo de código: se configuran como **variables de entorno** en
+   tu hosting (hoy: Vercel → tu proyecto → **Settings → Environment Variables**):
+   - `SUPABASE_URL` → el Project URL.
+   - `SUPABASE_ANON_KEY` → la anon public key. Es segura de usar en el navegador — la
+     protección real la dan las políticas RLS del paso 2; nunca uses la `service_role` key aquí.
+   - `LLOOPE_API_URL` → la URL de tu backend propio en Railway (ver sección 3), si lo usas.
+
+   Vercel expone estas variables al frontend a través de la función serverless
+   `/api/config.js` (incluida en el repo, cero configuración adicional). El panel admin
+   (`Ajustes → Integraciones`) solo muestra si cada una quedó bien configurada — no hay
+   formulario para tipearlas ahí. Después de guardarlas en Vercel, vuelve a desplegar.
+6. Ya puedes iniciar sesión en `/admin.html` con el usuario del paso 3, y tus clientes pueden
+   crear cuenta y ver sus pedidos desde "Mi cuenta". Los demás cambios de contenido (productos,
+   textos, imágenes) se siguen publicando con **"Publicar cambios"** como siempre — solo la
+   configuración de Supabase/lloope-api dejó de depender de eso.
 
 ### Qué sigue siendo mockup
 El resto del contenido de la tienda (productos, textos, imágenes, banners, cupones, etc.)
@@ -192,7 +198,7 @@ Identity** siguen siendo buenas opciones gratuitas — ver la documentación de 
 |---|---|---|
 | Catálogo, banners, cupones, contacto, textos, configuración | `data/store.json` (publicado) | **Sí**, mientras cambie con poca frecuencia (lo editas y publicas cuando corresponde). Es la solución correcta para el tamaño actual del proyecto. |
 | Borrador de edición del admin | `localStorage` del navegador del admin | Solo como espacio de trabajo antes de publicar. **Nunca** como fuente pública. |
-| Cuentas de cliente y pedidos | **Supabase** (Postgres + Auth), si lo configuraste en Ajustes → Integraciones (panel admin) | **Sí** — es una base de datos real, compartida entre el admin y los clientes. Ver sección 5. Si no lo configuras, sigue siendo mockup (perfil de invitado sin pedidos). |
+| Cuentas de cliente y pedidos | **Supabase** (Postgres + Auth), si configuraste `SUPABASE_URL`/`SUPABASE_ANON_KEY` como variable de entorno en tu hosting | **Sí** — es una base de datos real, compartida entre el admin y los clientes. Ver sección 5. Si no lo configuras, sigue siendo mockup (perfil de invitado sin pedidos). |
 | Usuarios administradores (equipo, roles — sección "Usuarios" del panel) | `localStorage` del navegador del admin | Solo demo/registro manual. No otorgan acceso real al panel — el acceso real ya lo controla Supabase Auth (sección 5). |
 
 **Cuándo pasar el resto del contenido a una base de datos real también:** cuando quieras que

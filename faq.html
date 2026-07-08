@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Política de Privacidad y Términos · Lloope</title>
+<title>Preguntas frecuentes · Lloope</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Jost:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -39,12 +39,17 @@
   .page-title span{font-size:.72rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--copper)}
   .page-title h1{font-size:clamp(1.9rem,3.6vw,2.6rem);margin-top:.4rem}
 
-  .panel{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);border:1px solid rgba(43,33,26,.06);padding:26px;margin-bottom:20px}
-  .panel h2{font-size:1.15rem;margin-bottom:.8rem}
-  .panel p{white-space:pre-wrap;color:var(--coffee);font-size:.94rem}
-  .panel ul{color:var(--coffee);font-size:.94rem;padding-left:1.2em;display:grid;gap:.5rem}
-  .panel ul li strong{color:var(--espresso)}
-  .contact-line{margin-top:.9rem;font-size:.9rem}
+  .panel{background:var(--paper);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);border:1px solid rgba(43,33,26,.06);padding:10px 26px;margin-bottom:20px}
+
+  .faq-item{border-bottom:1px solid var(--line)}
+  .faq-item:last-child{border-bottom:none}
+  .faq-q{width:100%;text-align:left;background:none;border:none;padding:1.1rem 0;display:flex;justify-content:space-between;align-items:center;gap:1rem;cursor:pointer;font-size:1rem;font-weight:700;color:var(--espresso);font-family:var(--sans)}
+  .faq-q svg{flex:none;transition:transform .25s;color:var(--wood)}
+  .faq-item.open .faq-q svg{transform:rotate(180deg)}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;font-size:.94rem;color:var(--coffee);line-height:1.65}
+  .faq-item.open .faq-a{max-height:400px;padding-bottom:1.1rem}
+
+  .contact-line{margin-top:.9rem;font-size:.9rem;color:var(--coffee)}
   .contact-line a{text-decoration:underline;font-weight:700;color:var(--wood-dark)}
 </style>
 </head>
@@ -66,47 +71,48 @@
 <main>
   <div class="wrap">
     <div class="page-title">
-      <span>Legal</span>
-      <h1>Política de Privacidad y Términos</h1>
+      <span>Ayuda</span>
+      <h1>Preguntas frecuentes</h1>
     </div>
-    <div id="legalRoot"></div>
+    <div id="faqRoot"></div>
   </div>
 </main>
 
 <script>
 const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const chevron='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
 
-function section(title, text){
-  if(!text) return '';
-  return `<div class="panel"><h2>${esc(title)}</h2><p>${esc(text)}</p></div>`;
+function toggleFaq(i){
+  $$('#faqRoot .faq-item').forEach((el,j)=>el.classList.toggle('open', j===i && !el.classList.contains('open')));
 }
 
 async function boot(){
   const DATA = await Lloope.loadPublicData();
-  const legal = DATA.legal || {};
+  const list = (DATA.faq||[]).filter(f=>f.active);
   const contact = DATA.contact || {};
   const whatsapp = String(contact.whatsapp||'').replace(/\D/g,'');
 
-  let html = '';
-  html += section('Política de privacidad', legal.privacy);
-  html += section('Términos y condiciones', legal.terms);
-  html += section('Cambios y devoluciones', legal.returns);
-  html += section('Despacho', legal.shipping);
-  html += section('IVA', legal.iva);
-  html += section('Compra segura', legal.secure);
+  if(!list.length){
+    $('#faqRoot').innerHTML = '<div class="panel"><p style="padding:16px 0;color:var(--coffee)">Aún no hay preguntas frecuentes configuradas.</p></div>';
+    return;
+  }
 
-  html += `<div class="panel">
-    <h2>Tus datos y tus derechos</h2>
-    ${legal.dataRights ? `<p>${esc(legal.dataRights)}</p>` : ''}
-    <div class="contact-line">
-      ${contact.email ? `Escríbenos a <a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a>` : ''}
-      ${whatsapp ? ` o por <a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
-      para ejercer tus derechos sobre tus datos personales.
-    </div>
-  </div>`;
+  const items = list.map((f,i)=>`
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(${i})">${esc(f.q)}${chevron}</button>
+      <div class="faq-a">${esc(f.a)}</div>
+    </div>`).join('');
 
-  $('#legalRoot').innerHTML = html || '<div class="panel"><p>Aún no hay textos legales configurados.</p></div>';
+  $('#faqRoot').innerHTML = `<div class="panel">${items}</div>
+    <div class="panel">
+      <p>¿No encontraste lo que buscabas?</p>
+      <div class="contact-line">
+        ${contact.email ? `Escríbenos a <a href="mailto:${esc(contact.email)}">${esc(contact.email)}</a>` : ''}
+        ${whatsapp ? ` o por <a href="https://wa.me/${whatsapp}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+      </div>
+    </div>`;
 }
 boot();
 </script>

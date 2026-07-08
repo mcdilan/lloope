@@ -41,6 +41,7 @@ const LLOOPE_KEYS = {
   coupons:   "lloope_coupons",
   banners:   "lloope_banners",
   corpLogos:    "lloope_corp_logos",
+  faq:          "lloope_faq",
   fieldOptions: "lloope_field_options",
   welcomePopup: "lloope_welcome_popup",
   supabase:  "lloope_supabase_config", // ver sección SUPABASE más abajo
@@ -53,7 +54,7 @@ const LLOOPE_KEYS = {
    "supabase" SÍ se publica a propósito: la anon key está diseñada para ser
    pública (la protección real la da RLS) y los visitantes reales necesitan
    estos datos para poder crear cuenta e iniciar sesión — ver Lloope.auth. */
-const LLOOPE_PUBLIC_KEYS = ['settings','home','menu','products','categories','images','contact','cart','payment','legal','coupons','banners','corpLogos','fieldOptions','welcomePopup','supabase'];
+const LLOOPE_PUBLIC_KEYS = ['settings','home','menu','products','categories','images','contact','cart','payment','legal','coupons','banners','corpLogos','faq','fieldOptions','welcomePopup','supabase'];
 
 /* Llaves de estado del VISITANTE (no del admin): carrito en curso, perfil de
    invitado recordado y leads capturados por el pop-up de salida. Viven fuera
@@ -341,6 +342,14 @@ const LLOOPE_DEFAULTS = {
     { id:5, name:"Vamos ONG Chile",   image:"img/logo_vamosong_chile.png",    url:"", active:true },
     { id:6, name:"Cercotec Rancagua", image:"img/logo_cercotec_rancagua.png", url:"", active:true },
     { id:7, name:"Colegio Antilén",   image:"img/loco_colegio_antilen.png",   url:"", active:true }
+  ],
+
+  /* Preguntas frecuentes generales de la tienda (página faq.html, enlazada
+     desde el footer). Distintas del FAQ por producto (campo "faq" de cada
+     producto), que responde dudas específicas de esa pieza. */
+  faq: [
+    { id:1, q:"¿Cómo cuido mi pieza de madera?", a:"Limpia con paño húmedo, evita remojarla. Para tablas de cocina, aplica aceite de coco o mineral cada cierto tiempo. No lavar en lavavajillas.", active:true },
+    { id:2, q:"¿Cómo se hace el envío?", a:"Despachamos a todo Chile. Coordinamos el envío por WhatsApp una vez confirmado el pedido. El costo de despacho depende de tu ubicación.", active:true }
   ],
 
   /* Listas de sugerencias para los campos de producto (combobox editable).
@@ -694,8 +703,30 @@ const Lloope = {
     LLOOPE_PUBLIC_KEYS.forEach(k=>{
       data[k] = (published && published[k] !== undefined) ? published[k] : this.get(k);
     });
+
+    /* Si el hosting expone /api/config (función serverless de Vercel), esos
+       valores mandan sobre store.json/localStorage — permite fijar Supabase
+       y la URL de lloope-api por variable de entorno en vez de tipearlos en
+       el admin. Ver fetchEnvConfig(). */
+    const envCfg = await this.fetchEnvConfig();
+    if (envCfg) data.supabase = { ...data.supabase, url: envCfg.url, anonKey: envCfg.anonKey, apiUrl: envCfg.apiUrl || data.supabase.apiUrl };
+
     data._source = published ? 'store.json' : 'localStorage/defaults';
     return data;
+  },
+
+  /* Lee la config de Supabase/lloope-api publicada como variable de entorno
+     en el hosting (hoy: /api/config, función serverless de Vercel — ver
+     /api/config.js). Devuelve null si el endpoint no existe (Cloudflare
+     Pages, file://, dev local sin Vercel) o si las variables no están
+     seteadas todavía, para que el resto del sitio siga funcionando igual. */
+  async fetchEnvConfig(){
+    try {
+      const res = await fetch('/api/config', {cache:'no-store'});
+      if (!res.ok) return null;
+      const env = await res.json();
+      return (env && env.supabase && env.supabase.url && env.supabase.anonKey) ? env.supabase : null;
+    } catch(e){ return null; }
   },
 
   /* ---- Cupones de un solo uso: marca de "ya usado" por navegador (best-effort) ---- */
