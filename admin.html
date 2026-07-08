@@ -1630,18 +1630,18 @@ VIEWS.coupons=(c)=>{
       <h2>Cupón de bienvenida (pop-up de salida)</h2>
       <p class="lead">Se muestra cuando un visitante intenta irse del sitio (o tras un rato en celular), invitándolo a dejar su correo a cambio de un descuento en su primera compra.</p>
       ${sw('wp_en','Pop-up activado',wp.enabled)}
-      <div class="grid-2" style="margin-top:1rem">
-        <div class="field"><label>Título</label><input type="text" id="wp_title" value="${escAttr(wp.title)}"></div>
-        <div class="field"><label>Texto del sello</label><input type="text" id="wp_badge" value="${escAttr(wp.badgeText)}" placeholder="10% OFF"></div>
-      </div>
+      <div class="field" style="margin-top:1rem"><label>Título</label><input type="text" id="wp_title" value="${escAttr(wp.title)}"></div>
       <div class="field"><label>Texto</label><textarea id="wp_text">${esc(wp.text)}</textarea></div>
-      <div class="field"><label>Descuentos disponibles (%) <span class="hint">valores separados por coma, ej: 5, 10, 15, 20</span></label>
-        <input type="text" id="wp_discounts" value="${(wp.discounts||[5,10,15]).join(', ')}" placeholder="5, 10, 15">
+      <div class="field">
+        <label>Descuento activo <span class="hint">— es el único que ve el cliente, no elige entre varios</span></label>
+        <div id="wp_presets" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.7rem"></div>
+        <input type="number" id="wp_active_discount" min="1" max="99" value="${Number(wp.activeDiscount)||10}" style="max-width:140px" placeholder="10">
       </div>
       <div class="grid-2">
-        <div class="field"><label>Código de cupón base <span class="hint">(ej: BIENVENIDO; se agregará el % al mostrar)</span></label><input type="text" id="wp_code" value="${escAttr(wp.couponCode)}"></div>
+        <div class="field"><label>Código de cupón base <span class="hint">(ej: BIENVENIDO; se le agrega el % al mostrarlo)</span></label><input type="text" id="wp_code" value="${escAttr(wp.couponCode)}"></div>
         <div class="field"><label>Texto del botón</label><input type="text" id="wp_btn" value="${escAttr(wp.buttonText)}"></div>
       </div>
+      <div class="field"><label>Condiciones <span class="hint">(letra chica que se muestra junto al código, ej: no acumulable con otras promociones)</span></label><textarea id="wp_terms">${esc(wp.terms||'')}</textarea></div>
       <div class="field"><label>Imagen de fondo <span class="hint">(opcional)</span></label>
         <img class="thumb" id="wp_img_prev" src="${escAttr(wp.image)}" style="${wp.image?'':'display:none'}"><div style="height:8px"></div>
         <input type="text" id="wp_img" value="${escAttr(wp.image)}" placeholder="img/... o URL">
@@ -1669,11 +1669,31 @@ VIEWS.coupons=(c)=>{
   $('#cpAdd').onclick=()=>editCoupon(null);
   bindFilePreview('wp_img_file','wp_img','wp_img_prev');
   $('#wp_img').oninput=e=>{ const p=$('#wp_img_prev'); p.src=e.target.value; p.style.display=e.target.value?'':'none'; };
+  function renderWpPresets(){
+    const presets=(Lloope.get('welcomePopup').discountPresets||[5,10,15]).slice().sort((a,b)=>a-b);
+    const active=Number($('#wp_active_discount').value);
+    $('#wp_presets').innerHTML = presets.map(p=>`<button type="button" class="btn btn-sm ${p===active?'btn-wood':'btn-ghost'}" data-preset="${p}">${p}%</button>`).join('')
+      + `<button type="button" class="btn btn-sm btn-ghost" id="wp_add_preset">+ Agregar otro</button>`;
+    $$('#wp_presets [data-preset]').forEach(b=>b.onclick=()=>{ $('#wp_active_discount').value=b.dataset.preset; renderWpPresets(); });
+    $('#wp_add_preset').onclick=()=>{
+      const val=Number(prompt('Nuevo % de descuento a agregar (1-99):'));
+      if(!val||val<1||val>99){ if(val) toast('Debe ser un número entre 1 y 99',true); return; }
+      const cur=Lloope.get('welcomePopup');
+      const newPresets=[...new Set([...(cur.discountPresets||[]), val])];
+      Lloope.set('welcomePopup',{...cur, discountPresets:newPresets});
+      $('#wp_active_discount').value=val;
+      renderWpPresets();
+    };
+  }
+  renderWpPresets();
+  $('#wp_active_discount').oninput=renderWpPresets;
   $('#wp_save').onclick=()=>{
-    const discounts = $('#wp_discounts').value.split(',').map(s=>Number(s.trim())).filter(n=>n>0 && n<100);
-    if(!discounts.length){ toast('Agrega al menos un descuento válido (1-99%)', true); return; }
-    save('welcomePopup',{ enabled:$('#wp_en').checked, title:$('#wp_title').value, text:$('#wp_text').value,
-      discounts, image:$('#wp_img').value, couponCode:$('#wp_code').value.trim().toUpperCase(),
+    const activeDiscount=Number($('#wp_active_discount').value);
+    if(!activeDiscount||activeDiscount<1||activeDiscount>99){ toast('El descuento activo debe ser un número entre 1 y 99', true); return; }
+    const cur=Lloope.get('welcomePopup');
+    save('welcomePopup',{ ...cur, enabled:$('#wp_en').checked, title:$('#wp_title').value, text:$('#wp_text').value,
+      activeDiscount, discountPresets:cur.discountPresets||[5,10,15], terms:$('#wp_terms').value,
+      image:$('#wp_img').value, couponCode:$('#wp_code').value.trim().toUpperCase(),
       buttonText:$('#wp_btn').value },'Cupón de bienvenida guardado');
   };
 };

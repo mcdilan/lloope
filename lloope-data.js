@@ -378,7 +378,9 @@ const LLOOPE_DEFAULTS = {
     enabled: false,
     title: "¡Espera! Un regalo para ti",
     text: "Déjanos tu correo y obtén un descuento especial para tu primera compra en Lloope.",
-    discounts: [5, 10, 15],
+    terms: "Descuento válido solo para tu primera compra en Lloope. No acumulable con otras promociones o descuentos vigentes.",
+    activeDiscount: 10,
+    discountPresets: [5, 10, 15],
     image: "",
     couponCode: "BIENVENIDO",
     buttonText: "Quiero mi descuento"
