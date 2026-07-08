@@ -378,9 +378,9 @@ const LLOOPE_DEFAULTS = {
     enabled: false,
     title: "¡Espera! Un regalo para ti",
     text: "Déjanos tu correo y obtén un descuento especial para tu primera compra en Lloope.",
-    badgeText: "10% OFF",
+    discounts: [5, 10, 15],
     image: "",
-    couponCode: "BIENVENIDO10",
+    couponCode: "BIENVENIDO",
     buttonText: "Quiero mi descuento"
   },
 

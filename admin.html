@@ -1635,8 +1635,11 @@ VIEWS.coupons=(c)=>{
         <div class="field"><label>Texto del sello</label><input type="text" id="wp_badge" value="${escAttr(wp.badgeText)}" placeholder="10% OFF"></div>
       </div>
       <div class="field"><label>Texto</label><textarea id="wp_text">${esc(wp.text)}</textarea></div>
+      <div class="field"><label>Descuentos disponibles (%) <span class="hint">valores separados por coma, ej: 5, 10, 15, 20</span></label>
+        <input type="text" id="wp_discounts" value="${(wp.discounts||[5,10,15]).join(', ')}" placeholder="5, 10, 15">
+      </div>
       <div class="grid-2">
-        <div class="field"><label>Código de cupón a mostrar <span class="hint">(debe existir y estar activo abajo)</span></label><input type="text" id="wp_code" value="${escAttr(wp.couponCode)}"></div>
+        <div class="field"><label>Código de cupón base <span class="hint">(ej: BIENVENIDO; se agregará el % al mostrar)</span></label><input type="text" id="wp_code" value="${escAttr(wp.couponCode)}"></div>
         <div class="field"><label>Texto del botón</label><input type="text" id="wp_btn" value="${escAttr(wp.buttonText)}"></div>
       </div>
       <div class="field"><label>Imagen de fondo <span class="hint">(opcional)</span></label>
@@ -1667,8 +1670,10 @@ VIEWS.coupons=(c)=>{
   bindFilePreview('wp_img_file','wp_img','wp_img_prev');
   $('#wp_img').oninput=e=>{ const p=$('#wp_img_prev'); p.src=e.target.value; p.style.display=e.target.value?'':'none'; };
   $('#wp_save').onclick=()=>{
+    const discounts = $('#wp_discounts').value.split(',').map(s=>Number(s.trim())).filter(n=>n>0 && n<100);
+    if(!discounts.length){ toast('Agrega al menos un descuento válido (1-99%)', true); return; }
     save('welcomePopup',{ enabled:$('#wp_en').checked, title:$('#wp_title').value, text:$('#wp_text').value,
-      badgeText:$('#wp_badge').value, image:$('#wp_img').value, couponCode:$('#wp_code').value.trim().toUpperCase(),
+      discounts, image:$('#wp_img').value, couponCode:$('#wp_code').value.trim().toUpperCase(),
       buttonText:$('#wp_btn').value },'Cupón de bienvenida guardado');
   };
 };

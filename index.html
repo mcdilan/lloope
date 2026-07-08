@@ -946,6 +946,10 @@
     <div class="exit-body">
       <h2 id="exitTitle">¡Espera! Un regalo para ti</h2>
       <p id="exitText">Déjanos tu correo y obtén un descuento especial para tu primera compra.</p>
+      <div style="margin-bottom:1rem;display:none" id="exitDiscountSelectorWrap">
+        <label style="font-size:.82rem;font-weight:700;display:block;margin-bottom:.4rem">Elige tu descuento:</label>
+        <select id="exitDiscountSelector" style="width:100%;padding:.6em;border-radius:8px;border:1px solid var(--line);font-size:.9rem;font-family:inherit;background:var(--paper)"></select>
+      </div>
       <form id="exitForm">
         <input type="email" id="exitEmail" placeholder="tu@correo.cl" required />
         <label class="exit-consent"><input type="checkbox" id="exitConsent" required /> He leído y acepto la <a href="legal.html" target="_blank" rel="noopener">Política de Privacidad</a> de <span class="brand-name">Lloope</span>.</label>
@@ -1598,18 +1602,27 @@ function renderGuestProfileEditForm(profile){
 }
 
 /* ============ POP-UP DE SALIDA (cupón de bienvenida) ============ */
-let exitShown=false;
+let exitShown=false, exitSelectedDiscount=null;
 function maybeShowExitPopup(){
   if(exitShown) return;
-  const cfg=welcomePopup||{};
+  const cfg=Lloope.get('welcomePopup')||{};
   if(!cfg.enabled) return;
   if(sessionStorage.getItem('lloope_exit_seen')) return;
   exitShown=true;
   sessionStorage.setItem('lloope_exit_seen','1');
+  const discounts=(cfg.discounts||[10]).sort((a,b)=>b-a);
+  exitSelectedDiscount=discounts[0];
   $('#exitTitle').textContent=cfg.title||'¡Espera! Un regalo para ti';
   $('#exitText').textContent=cfg.text||'';
-  $('#exitBadge').textContent=cfg.badgeText||'OFF';
-  $('#exitCode').textContent=cfg.couponCode||'';
+  $('#exitBadge').textContent=exitSelectedDiscount+'% OFF';
+  $('#exitCode').textContent=(cfg.couponCode||'BIENVENIDO')+exitSelectedDiscount;
+  if(discounts.length>1){
+    const opts=discounts.map(d=>`<option value="${d}">${d}%</option>`).join('');
+    $('#exitDiscountSelector').innerHTML=opts;
+    $('#exitDiscountSelectorWrap').style.display='block';
+  } else {
+    $('#exitDiscountSelectorWrap').style.display='none';
+  }
   const media=$('#exitMedia');
   if(cfg.image){ media.style.backgroundImage=`url('${cfg.image}')`; media.style.backgroundSize='cover'; media.style.backgroundPosition='center'; }
   $('#exitForm').style.display='grid'; $('#exitRevealed').style.display='none';
@@ -1630,6 +1643,12 @@ function bindEvents(){
   $('#exitClose').onclick=closeExitPopup;
   $('#exitDismiss').onclick=closeExitPopup;
   $('#exitOverlay').addEventListener('click',e=>{ if(e.target===$('#exitOverlay')) closeExitPopup(); });
+  $('#exitDiscountSelector').addEventListener('change',e=>{
+    const cfg=Lloope.get('welcomePopup')||{};
+    exitSelectedDiscount=Number(e.target.value);
+    $('#exitBadge').textContent=exitSelectedDiscount+'% OFF';
+    $('#exitCode').textContent=(cfg.couponCode||'BIENVENIDO')+exitSelectedDiscount;
+  });
   $('#exitForm').addEventListener('submit',e=>{
     e.preventDefault();
     const email=$('#exitEmail').value.trim();
